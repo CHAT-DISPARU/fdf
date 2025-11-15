@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   fdf.h                                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: titan <titan@student.42.fr>                +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 11:13:19 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/14 09:23:20 by titan            ###   ########.fr       */
+/*   Updated: 2025/11/15 11:16:55 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,14 +24,42 @@
 # include <sys/wait.h>
 # include <unistd.h>
 # include <stdio.h>
+# include <mlx.h>
+# include <mlx_extended.h>
+
+# define WIDTH       800
+# define HEIGHT      600
+# define M_PI        3.14159265358979323846
+
+typedef struct s_vec3
+{
+    float x;
+    float y;
+    float z;
+}                t_vec3;
+
+typedef struct s_mat4
+{
+    float m[4][4];
+}                 t_mat4;
+
+typedef struct s_window_render
+{
+    mlx_context *mlx;
+    void *win;
+    void *img;
+    char *addr;
+    int bpp;
+    int sizeline;
+} t_window_render;
 
 typedef struct s_map_pars
 {
 	int	x_max;
 	int	y_max;
 	char	**all_line;
-	int		**map;
-	unsigned long	**color_map;
+	int		*map;
+	unsigned long	*color_map;
 }				t_map_pars;
 
 typedef struct s_map

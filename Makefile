@@ -6,7 +6,7 @@
 #    By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/11/13 12:35:12 by gajanvie          #+#    #+#              #
-#    Updated: 2025/11/13 12:37:17 by gajanvie         ###   ########.fr        #
+#    Updated: 2025/11/14 11:55:18 by gajanvie         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -26,24 +26,30 @@ SRCS = $(SRCD)fdf.c
 
 OBJS = $(SRCS:$(SRCD)%.c=$(OBJDIR)%.o)
 
-CC = cc
+CC = clang
 RM = rm -f
 CFLAGS = -Wall -Wextra -Werror -g -I ./include
+MLX_DIR = MacroLibX
+MLX = $(MLX_DIR)/libmlx.so
 
 all: $(NAME) banner
 
 banner :
-	@echo "$(BLUE)"
-	@echo "FDF"
-	@echo "$(NC)"
+	@printf "$(PURPLE)fdf$(NC)\n"
+	@printf "$(GREEN)_____$(NC)$(RED)/\\/\\/\\/\\/\\/$(NC)$(GREEN)___$(NC)$(RED)/\\/\\/\\/\\/$(NC)$(GREEN)______$(NC)$(RED)/\\/\\/\\/\\/\\/$(NC)$(GREEN)____$(NC)\n"
+	@printf "$(GREEN)____$(NC)$(RED)/\\/$(NC)$(GREEN)___________$(NC)$(RED)/\\/$(NC)$(GREEN)_____$(NC)$(RED)/\\/$(NC)$(GREEN)____$(NC)$(RED)/\\/$(NC)$(GREEN)____________$(NC)\n"
+	@printf "$(GREEN)___$(NC)$(RED)/\\/\\/\\/\\/$(NC)$(GREEN)_____$(NC)$(RED)/\\/$(NC)$(GREEN)_____$(NC)$(RED)/\\/$(NC)$(GREEN)____$(NC)$(RED)/\\/\\/\\/\\/$(NC)$(GREEN)______$(NC)\n"
+	@printf "$(GREEN)__$(NC)$(RED)/\\/$(NC)$(GREEN)___________$(NC)$(RED)/\\/$(NC)$(GREEN)_____$(NC)$(RED)/\\/$(NC)$(GREEN)____$(NC)$(RED)/\\/$(NC)$(GREEN)____________$(NC)\n"
+	@printf "$(GREEN)_$(NC)$(RED)/\\/$(NC)$(GREEN)___________$(NC)$(RED)/\\/\\/\\/\\/$(NC)$(GREEN)______$(NC)$(RED)/\\/$(NC)$(GREEN)____________$(NC)\n"
+	@printf "$(GREEN)____________________________________________$(NC)\n"
 
-$(NAME): src/libft/libft.a $(OBJS) $(OBJS_PRINTF) $(OBJS_GNL)
-	@$(CC) $(CFLAGS) $(OBJS) $(OBJS_PRINTF) $(OBJS_GNL) $(LIBFT) -o $(NAME)
+$(NAME): src/libft/libft.a $(OBJS)
+	@$(CC) $(CFLAGS) $(OBJS) $(LIBFT) $(MLX) -lSDL2 -o $(NAME)
 	@echo "$(GREEN)✅ Compilation of fdf finished !$(NC)"
 
 $(OBJDIR)%.o: $(SRCD)%.c
 	@mkdir -p objs/
-	@$(CC) $(CFLAGS) $< -c -o $@
+	@$(CC) $(CFLAGS) -I MacroLibX/includes $< -c -o $@
 
 $(LIBFT):
 	@make --no-print-directory -C src/libft

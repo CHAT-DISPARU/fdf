@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/17 15:59:23 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/09 14:47:57 by gajanvie         ###   ########.fr       */
+/*   Updated: 2025/11/14 10:43:36 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,16 +53,4 @@ char	*ft_strjoin_gnl(char *s1, char *s2)
 	fill_str(s1, s2, &result);
 	free(s1);
 	return (result);
-}
-
-char	*ft_strchr(const char *s, int c)
-{
-	size_t	i;
-
-	i = 0;
-	while (s[i] && (unsigned char)s[i] != (unsigned char)c)
-		i++;
-	if ((unsigned char)s[i] == (unsigned char)c)
-		return ((char *)(s + i));
-	return (NULL);
 }

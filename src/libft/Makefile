@@ -6,7 +6,7 @@
 #    By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/10/14 20:10:19 by gajanvie          #+#    #+#              #
-#    Updated: 2025/11/13 14:57:36 by gajanvie         ###   ########.fr        #
+#    Updated: 2025/11/14 10:36:15 by gajanvie         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -70,6 +70,7 @@ SRCS = $(SRCD)/ft_isalnum.c \
        $(SRCD)/ft_readers.c \
        $(SRCD)/ft_putstr.c \
        $(SRCD)/ft_putchar.c \
+       $(SRCD)/ft_atol_base.c \
        $(SRCD)/ft_atol.c
 
 OBJS 	= $(SRCS:$(SRCD)%.c=$(OBJDIR)%.o)

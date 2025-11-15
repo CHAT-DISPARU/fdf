@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   fdf.c                                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: titan <titan@student.42.fr>                +#+  +:+       +#+        */
+/*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 10:47:21 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/15 10:31:55 by titan            ###   ########.fr       */
+/*   Updated: 2025/11/15 11:38:24 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -157,17 +157,8 @@ int	len_valid (t_map_pars *map_pars)
 	return (len);
 }
 
-void cleanup_map(t_map_pars *map_pars, int up_to)
+void cleanup_map(t_map_pars *map_pars)
 {
-    int	i;
-
-	i = 0;
-    while (i < up_to)
-    {
-        free(map_pars->map[i]);
-        free(map_pars->color_map[i]);
-        i++;
-    }
     free(map_pars->map);
     free(map_pars->color_map);
     map_pars->map = NULL;
@@ -179,14 +170,22 @@ void	convert_int(t_map_pars *map_pars)
 	char	**line_split;
 	int		i;
 	int		k;
+	int		j;
+	int		n;
 	char	*coma;
 	char	*color_str;
 	
 	i = 0;
-	map_pars->map = malloc (sizeof(int *) * map_pars->y_max);
-	map_pars->color_map = malloc (sizeof(long *) * map_pars->y_max);
+	j = 0;
+	n = 0;
+	map_pars->map = malloc (sizeof(int) * map_pars->y_max * map_pars->x_max * 3);
+	map_pars->color_map = malloc (sizeof(long *) * map_pars->y_max * map_pars->x_max);
 	if (!map_pars->map || !map_pars->color_map)
+	{
+		if (!map_pars->color_map)
+			free(map_pars->map);
         mess_error("malloc map", 1);
+	}
 	while (map_pars->all_line[i])
 	{
 		k = 0;
@@ -194,13 +193,9 @@ void	convert_int(t_map_pars *map_pars)
 		if (!line_split)
 		{
 			free_all(map_pars->all_line);
-			cleanup_map(map_pars, i);
+			cleanup_map(map_pars);
 			mess_error("malloc parsing:", EXIT_FAILURE);
 		}
-		map_pars->map[i] = malloc (sizeof(int) * map_pars->x_max);
-		map_pars->color_map[i] = malloc (sizeof(long) * map_pars->x_max);
-		if (!map_pars->map[i] || !map_pars->color_map[i])
-        	mess_error("malloc map", 1);
 		while (line_split[k])
 		{
 			coma = ft_strchr(line_split[k], ',');
@@ -210,17 +205,20 @@ void	convert_int(t_map_pars *map_pars)
 				color_str = coma + 1;
 				if (color_str[0] == '0' && (color_str[1] == 'x' || color_str[1] == 'X'))
                     color_str += 2;
-				map_pars->color_map[i][k] = ft_atol_base(color_str, 16);
+				map_pars->color_map[n] = ft_atol_base(color_str, "0123456789abcdef");
 			}
 			else
-				map_pars->color_map[i][k] = 0xFFFFFFFFUL;
-			map_pars->map[i][k] = ft_atoi(line_split[k]);
+				map_pars->color_map[n] = 0xFFFFFFUL;
+			n++;
+			map_pars->map[j] = k;
+			map_pars->map[j + 1] = i;
+			map_pars->map[j + 2] = ft_atoi(line_split[k]);
+			j += 3;
 			k++;
 		}
 		free_all(line_split);
 		i++;	
 	}
-	
 }
 
 void	parse_map(char *file, t_map_pars *map_pars)
@@ -250,22 +248,11 @@ void	parse_map(char *file, t_map_pars *map_pars)
 
 void	free_all_int_tabs(t_map_pars *map_pars)
 {
-	int i;
-
-	i = 0;
-	if (!map_pars->map || !map_pars->color_map)
-		return ;
-	while (i < map_pars->y_max)
-	{
-		free(map_pars->map[i]);
-		free(map_pars->color_map[i]);
-		i++;
-	}
 	free(map_pars->map);
 	free(map_pars->color_map);
 }
 
-void mat4_initial(t_mat4 *mat)
+/*void mat4_initial(t_mat4 *mat)
 {
     int	i;
     int	j;
@@ -335,19 +322,19 @@ void create_isometric_model(t_mat4 *model)
     rx.m[1][2] = -sx;
     rx.m[2][1] = sx;
     rx.m[2][2] = cx;
-	/*[ 1    0    0    0 ]
-	  [ 0   cx  -sx   0 ] iverse de wiki prcq on chqnge z et y
-	  [ 0   sx   cx   0 ]
-	  [ 0    0    0    1 ]*/
+	//[ 1    0    0    0 ]
+	//[ 0   cx  -sx   0 ] iverse de wiki prcq on chqnge z et y
+	//[ 0   sx   cx   0 ]
+	//[ 0    0    0    1 ]
     mat4_initial(&ry);
     ry.m[0][0] = cy;
     ry.m[0][2] = sy;
     ry.m[2][0] = -sy;
     ry.m[2][2] = cy;
-	/*[ cy   0   sy   0 ]
-	  [  0   1    0   0 ] pareil le sang
-	  [-sy   0   cy   0 ]
-	  [  0   0    0   1 ]*/
+	//[ cy   0   sy   0 ]
+	//[  0   1    0   0 ] pareil le sang
+	//[-sy   0   cy   0 ]
+	//[  0   0    0   1 ]
     *model = mat4_multiply(&ry, &rx);
 }
 
@@ -397,12 +384,12 @@ void render_isometric(const int *pars, int nb_points, t_window_render *ctx)
 		//projeter manque a faire 
 	}
     mlx_put_image_to_window(ctx->mlx, ctx->win, ctx->img, 0, 0);
-}
+}*/
 
 int	main(int ac, char **av)
 {
 	t_map_pars map_pars;
-
+	int	i = 0;
 	if (ac != 2)
 	{
 		ft_printf("./fdf <map>");
@@ -415,5 +402,20 @@ int	main(int ac, char **av)
 		return (EXIT_FAILURE);	
 	}
 	free_all_int_tabs(&map_pars);
-	
+	while (i < map_pars.y_max * map_pars.x_max * 3)
+	{
+		ft_printf("x : %d\n", map_pars.map[i]);
+		ft_printf("y : %d\n", map_pars.map[i + 1]);
+		ft_printf("z : %d\n", map_pars.map[i + 2]);
+		ft_printf("\n");
+		i += 3;
+	}
+	i = 0;
+	ft_printf("\n");
+	ft_printf("\n");
+	while (i < map_pars.y_max * map_pars.x_max)
+	{
+		printf("color :%ld \n", map_pars.color_map[i]);
+		i++;
+	}
 }
