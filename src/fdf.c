@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 10:47:21 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/15 11:38:24 by gajanvie         ###   ########.fr       */
+/*   Updated: 2025/11/15 12:10:25 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -179,7 +179,7 @@ void	convert_int(t_map_pars *map_pars)
 	j = 0;
 	n = 0;
 	map_pars->map = malloc (sizeof(int) * map_pars->y_max * map_pars->x_max * 3);
-	map_pars->color_map = malloc (sizeof(long *) * map_pars->y_max * map_pars->x_max);
+	map_pars->color_map = malloc (sizeof(long) * map_pars->y_max * map_pars->x_max);
 	if (!map_pars->map || !map_pars->color_map)
 	{
 		if (!map_pars->color_map)
@@ -205,7 +205,10 @@ void	convert_int(t_map_pars *map_pars)
 				color_str = coma + 1;
 				if (color_str[0] == '0' && (color_str[1] == 'x' || color_str[1] == 'X'))
                     color_str += 2;
-				map_pars->color_map[n] = ft_atol_base(color_str, "0123456789abcdef");
+				if (*color_str == '\0')
+					map_pars->color_map[n] = 0xFFFFFFUL;
+				else
+					map_pars->color_map[n] = ft_atol_base(color_str, "0123456789abcdef");
 			}
 			else
 				map_pars->color_map[n] = 0xFFFFFFUL;
@@ -252,7 +255,7 @@ void	free_all_int_tabs(t_map_pars *map_pars)
 	free(map_pars->color_map);
 }
 
-/*void mat4_initial(t_mat4 *mat)
+void mat4_initial(t_mat4 *mat)
 {
     int	i;
     int	j;
@@ -351,7 +354,7 @@ void create_ortho_projection(t_mat4 *proj)
     proj->m[1][1] = 2.0f / HEIGHT;
 }
 
-void render_isometric(const int *pars, int nb_points, t_window_render *ctx)
+void render_isometric(t_map_pars *map_pars, t_window_render *caca)
 {
     t_mat4	model;
 	t_mat4	view;
@@ -367,7 +370,7 @@ void render_isometric(const int *pars, int nb_points, t_window_render *ctx)
     i = 0;
     while (i < WIDTH * HEIGHT)
 	{
-        ((int*)ctx->addr)[i] = 0xFF000000;
+        ((int*)caca->addr)[i] = 0xFF000000;
         i++;
     }
     create_isometric_model(&model);
@@ -376,19 +379,26 @@ void render_isometric(const int *pars, int nb_points, t_window_render *ctx)
     mv = mat4_multiply(&view, &model);
     mvp = mat4_multiply(&proj, &mv);
     i = 0;
-    while ()
+    while (i < map_pars->x_max * map_pars->y_max * 3)
 	{
-        p.x = 
-        p.y = 
-        p.z = 
-		//projeter manque a faire 
+        p.x = map_pars->map[i];
+        p.y = map_pars->map[i + 1];
+        p.z =  map_pars->map[i + 2];
+		
+		i +=3;
 	}
-    mlx_put_image_to_window(ctx->mlx, ctx->win, ctx->img, 0, 0);
-}*/
+    mlx_put_image_to_window(caca->mlx, caca->win, caca->img, 0, 0);
+}
 
 int	main(int ac, char **av)
 {
-	t_map_pars map_pars;
+	t_map_pars	map_pars;
+	t_window_render	caca;
+	mlx_window_create_info info;
+    info.title = "ENORME CACA";
+    info.width = WIDTH;
+    info.height = HEIGHT;
+	int endian;
 	int	i = 0;
 	if (ac != 2)
 	{
@@ -401,7 +411,6 @@ int	main(int ac, char **av)
 		ft_printf("parsing error from: %s", av[1]);
 		return (EXIT_FAILURE);	
 	}
-	free_all_int_tabs(&map_pars);
 	while (i < map_pars.y_max * map_pars.x_max * 3)
 	{
 		ft_printf("x : %d\n", map_pars.map[i]);
@@ -418,4 +427,15 @@ int	main(int ac, char **av)
 		printf("color :%ld \n", map_pars.color_map[i]);
 		i++;
 	}
+	caca.mlx = mlx_init();
+    caca.win = mlx_new_window(caca.mlx, &info);
+    caca.img = mlx_new_image(caca.mlx, WIDTH, HEIGHT);
+    caca.addr = mlx_get(caca.img, &caca.bpp, &caca.sizeline, &endian);
+    render_isometric(&map_pars, &caca);
+
+    mlx_loop(caca.mlx);
+	free_all_int_tabs(&map_pars);
+	mlx_destroy_window(caca.mlx, caca.win);
+    mlx_destroy_context(caca.mlx);
+    return 0;
 }
