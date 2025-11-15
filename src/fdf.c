@@ -6,7 +6,7 @@
 /*   By: titan <titan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 10:47:21 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/14 09:24:08 by titan            ###   ########.fr       */
+/*   Updated: 2025/11/15 10:31:55 by titan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -265,11 +265,143 @@ void	free_all_int_tabs(t_map_pars *map_pars)
 	free(map_pars->color_map);
 }
 
+void mat4_initial(t_mat4 *mat)
+{
+    int	i;
+    int	j;
+
+    i = 0;
+    while (i < 4)
+	{
+        j = 0;
+        while (j < 4)
+		{
+            if (i == j)
+                mat->m[i][j] = 1.0f;
+            else
+                mat->m[i][j] = 0.0f;
+            j++;
+        }
+        i++;
+    }
+}
+
+t_mat4 mat4_multiply(t_mat4 *a, t_mat4 *b)
+{
+    t_mat4	tmp;
+    int		i;
+    int		j;
+    int		k;
+
+    i = 0;
+    while (i < 4)
+	{
+        j = 0;
+        while (j < 4)
+		{
+            tmp.m[i][j] = 0.0f;
+            k = 0;
+            while (k < 4)
+			{
+                tmp.m[i][j] += a->m[i][k] * b->m[k][j];
+                k++;
+            }
+            j++;
+        }
+        i++;
+    }
+    return (tmp);
+}
+
+void create_isometric_model(t_mat4 *model)
+{
+	t_mat4	rx;
+    t_mat4	ry;
+    float	ax;
+    float	ay;
+    float	cx;
+    float	sx;
+    float	cy;
+    float	sy;
+
+	ax = -35.264f * M_PI / 180.0f;// arctan(1/√2) = angle magique 
+	ay = -45.0f * M_PI / 180.0f;
+	cx = cosf(ax);
+	sx = sinf(ax);
+	cy = cosf(ay);
+	sy = sinf(ay);
+    mat4_initial(&rx);
+    rx.m[1][1] = cx;
+    rx.m[1][2] = -sx;
+    rx.m[2][1] = sx;
+    rx.m[2][2] = cx;
+	/*[ 1    0    0    0 ]
+	  [ 0   cx  -sx   0 ] iverse de wiki prcq on chqnge z et y
+	  [ 0   sx   cx   0 ]
+	  [ 0    0    0    1 ]*/
+    mat4_initial(&ry);
+    ry.m[0][0] = cy;
+    ry.m[0][2] = sy;
+    ry.m[2][0] = -sy;
+    ry.m[2][2] = cy;
+	/*[ cy   0   sy   0 ]
+	  [  0   1    0   0 ] pareil le sang
+	  [-sy   0   cy   0 ]
+	  [  0   0    0   1 ]*/
+    *model = mat4_multiply(&ry, &rx);
+}
+
+void create_isometric_view(t_mat4 *view)
+{
+    mat4_initial(view);
+    view->m[3][2] = -300.0f;
+}
+
+void create_ortho_projection(t_mat4 *proj)
+{
+    mat4_initial(proj);
+    proj->m[0][0] = 2.0f / WIDTH;
+    proj->m[1][1] = 2.0f / HEIGHT;
+}
+
+void render_isometric(const int *pars, int nb_points, t_window_render *ctx)
+{
+    t_mat4	model;
+	t_mat4	view;
+	t_mat4	proj;
+	t_mat4	mv;
+	t_mat4	mvp;
+    int		i;
+    int		sx;
+	int		sy;
+    int		*pixel;
+	t_vec3	p;
+
+    i = 0;
+    while (i < WIDTH * HEIGHT)
+	{
+        ((int*)ctx->addr)[i] = 0xFF000000;
+        i++;
+    }
+    create_isometric_model(&model);
+    create_isometric_view(&view);
+    create_ortho_projection(&proj);
+    mv = mat4_multiply(&view, &model);
+    mvp = mat4_multiply(&proj, &mv);
+    i = 0;
+    while ()
+	{
+        p.x = 
+        p.y = 
+        p.z = 
+		//projeter manque a faire 
+	}
+    mlx_put_image_to_window(ctx->mlx, ctx->win, ctx->img, 0, 0);
+}
+
 int	main(int ac, char **av)
 {
 	t_map_pars map_pars;
-	int i = 0;
-	int j = 0;
 
 	if (ac != 2)
 	{
@@ -282,30 +414,6 @@ int	main(int ac, char **av)
 		ft_printf("parsing error from: %s", av[1]);
 		return (EXIT_FAILURE);	
 	}
-	while (i < map_pars.y_max)
-	{
-		j = 0;
-		while (j < map_pars.x_max)
-		{
-			ft_printf("%d ", map_pars.map[i][j]);
-			j++;
-		}
-		ft_printf("\n");
-		i++;
-	}
-	i = 0;
-	ft_printf("\n");
-	ft_printf("\n");
-	while (i < map_pars.y_max)
-	{
-		j = 0;
-		while (j < map_pars.x_max)
-		{
-			printf("%ld ", map_pars.color_map[i][j]);
-			j++;
-		}
-		printf("\n");
-		i++;
-	}
 	free_all_int_tabs(&map_pars);
+	
 }
