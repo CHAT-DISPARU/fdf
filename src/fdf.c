@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 10:47:21 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/15 12:10:25 by gajanvie         ###   ########.fr       */
+/*   Updated: 2025/11/16 19:24:15 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -354,6 +354,42 @@ void create_ortho_projection(t_mat4 *proj)
     proj->m[1][1] = 2.0f / HEIGHT;
 }
 
+void	get_screen_pos(t_vec3 p, int *sx, int *sy, t_mat4 *mvp)
+{
+    float tx;
+    float ty;
+
+    tx = p.x * mvp->m[0][0] + p.y * mvp->m[1][0] + p.z * mvp->m[2][0] + mvp->m[3][0];
+    ty = p.x * mvp->m[0][1] + p.y * mvp->m[1][1] + p.z * mvp->m[2][1] + mvp->m[3][1];
+    *sx = (int)(tx + WIDTH / 2);
+    *sy = (int)(ty + HEIGHT / 2);
+}
+
+void draw_point(int cx, int cy, unsigned int color, t_window_render *caca)
+{
+    int	size;
+    int	x;
+	int	y;
+	int	idx;
+
+	size = 2;
+    y = cy - size;
+    while (y <= cy + size)
+	{
+        x = cx - size;
+        while (x <= cx + size)
+		{
+            if (x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT)
+			{
+                idx = y * WIDTH + x;
+            	caca->pixels[idx].rgba = color;
+            }
+            x++;
+        }
+        y++;
+    }
+}
+
 void render_isometric(t_map_pars *map_pars, t_window_render *caca)
 {
     t_mat4	model;
@@ -364,15 +400,14 @@ void render_isometric(t_map_pars *map_pars, t_window_render *caca)
     int		i;
     int		sx;
 	int		sy;
-    int		*pixel;
 	t_vec3	p;
 
     i = 0;
     while (i < WIDTH * HEIGHT)
 	{
-        ((int*)caca->addr)[i] = 0xFF000000;
-        i++;
-    }
+        caca->pixels[i].rgba = 0x000000FF;
+		i++;
+	}
     create_isometric_model(&model);
     create_isometric_view(&view);
     create_ortho_projection(&proj);
@@ -384,21 +419,31 @@ void render_isometric(t_map_pars *map_pars, t_window_render *caca)
         p.x = map_pars->map[i];
         p.y = map_pars->map[i + 1];
         p.z =  map_pars->map[i + 2];
-		
-		i +=3;
+		get_screen_pos(p, &sx, &sy, &mvp);
+		ft_printf("x : %d          ", sx);
+		ft_printf("y : %d\n", sy);
+		if (sx >= 0 && sx < WIDTH && sy >= 0 && sy < HEIGHT)
+            draw_point(sx, sy, 0xF40210FF, caca);
+		i += 3;
 	}
+	mlx_set_image_region(caca->mlx, caca->img, 0, 0, WIDTH, HEIGHT, caca->pixels);
     mlx_put_image_to_window(caca->mlx, caca->win, caca->img, 0, 0);
+}
+
+void key_hook(int key, void* param)
+{
+    if(key == 41)
+        mlx_loop_end((mlx_context)param);
 }
 
 int	main(int ac, char **av)
 {
 	t_map_pars	map_pars;
 	t_window_render	caca;
-	mlx_window_create_info info;
+	mlx_window_create_info info = { 0 };
     info.title = "ENORME CACA";
     info.width = WIDTH;
     info.height = HEIGHT;
-	int endian;
 	int	i = 0;
 	if (ac != 2)
 	{
@@ -430,12 +475,12 @@ int	main(int ac, char **av)
 	caca.mlx = mlx_init();
     caca.win = mlx_new_window(caca.mlx, &info);
     caca.img = mlx_new_image(caca.mlx, WIDTH, HEIGHT);
-    caca.addr = mlx_get(caca.img, &caca.bpp, &caca.sizeline, &endian);
-    render_isometric(&map_pars, &caca);
-
+	render_isometric (&map_pars, &caca);
+	mlx_on_event(caca.mlx, caca.win, MLX_KEYDOWN, key_hook, caca.mlx);
     mlx_loop(caca.mlx);
 	free_all_int_tabs(&map_pars);
+	mlx_destroy_image(caca.mlx, caca.img);
 	mlx_destroy_window(caca.mlx, caca.win);
     mlx_destroy_context(caca.mlx);
-    return 0;
+    return (0);
 }

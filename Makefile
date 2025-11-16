@@ -6,7 +6,7 @@
 #    By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/11/13 12:35:12 by gajanvie          #+#    #+#              #
-#    Updated: 2025/11/14 11:55:18 by gajanvie         ###   ########.fr        #
+#    Updated: 2025/11/16 17:55:51 by gajanvie         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -44,7 +44,7 @@ banner :
 	@printf "$(GREEN)____________________________________________$(NC)\n"
 
 $(NAME): src/libft/libft.a $(OBJS)
-	@$(CC) $(CFLAGS) $(OBJS) $(LIBFT) $(MLX) -lSDL2 -o $(NAME)
+	@$(CC) $(CFLAGS) $(OBJS) $(LIBFT) $(MLX) -lSDL2 -lm -o $(NAME)
 	@echo "$(GREEN)✅ Compilation of fdf finished !$(NC)"
 
 $(OBJDIR)%.o: $(SRCD)%.c

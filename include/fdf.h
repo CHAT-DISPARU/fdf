@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 11:13:19 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/15 11:16:55 by gajanvie         ###   ########.fr       */
+/*   Updated: 2025/11/16 18:08:31 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@
 # include <unistd.h>
 # include <stdio.h>
 # include <mlx.h>
+# include <math.h>
 # include <mlx_extended.h>
 
 # define WIDTH       800
@@ -45,12 +46,10 @@ typedef struct s_mat4
 
 typedef struct s_window_render
 {
-    mlx_context *mlx;
+    mlx_context mlx;
     void *win;
     void *img;
-    char *addr;
-    int bpp;
-    int sizeline;
+    mlx_color pixels[HEIGHT * WIDTH];
 } t_window_render;
 
 typedef struct s_map_pars
