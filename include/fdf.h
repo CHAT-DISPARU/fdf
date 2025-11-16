@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 11:13:19 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/16 18:08:31 by gajanvie         ###   ########.fr       */
+/*   Updated: 2025/11/16 19:56:36 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,8 +28,8 @@
 # include <math.h>
 # include <mlx_extended.h>
 
-# define WIDTH       800
-# define HEIGHT      600
+# define WIDTH       1600
+# define HEIGHT      1000
 # define M_PI        3.14159265358979323846
 
 typedef struct s_vec3

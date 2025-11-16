@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 10:47:21 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/16 19:24:15 by gajanvie         ###   ########.fr       */
+/*   Updated: 2025/11/16 19:53:41 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -344,14 +344,16 @@ void create_isometric_model(t_mat4 *model)
 void create_isometric_view(t_mat4 *view)
 {
     mat4_initial(view);
-    view->m[3][2] = -300.0f;
+    view->m[3][2] = -100.0f;
 }
 
 void create_ortho_projection(t_mat4 *proj)
 {
     mat4_initial(proj);
-    proj->m[0][0] = 2.0f / WIDTH;
-    proj->m[1][1] = 2.0f / HEIGHT;
+    //proj->m[0][0] = 2.0f / WIDTH;
+    //proj->m[1][1] = 2.0f / HEIGHT;
+	proj->m[0][0] = 15.0f;
+	proj->m[1][1] = 15.0f;
 }
 
 void	get_screen_pos(t_vec3 p, int *sx, int *sy, t_mat4 *mvp)
@@ -372,7 +374,7 @@ void draw_point(int cx, int cy, unsigned int color, t_window_render *caca)
 	int	y;
 	int	idx;
 
-	size = 2;
+	size = 0;
     y = cy - size;
     while (y <= cy + size)
 	{
@@ -416,8 +418,8 @@ void render_isometric(t_map_pars *map_pars, t_window_render *caca)
     i = 0;
     while (i < map_pars->x_max * map_pars->y_max * 3)
 	{
-        p.x = map_pars->map[i];
-        p.y = map_pars->map[i + 1];
+        p.x = map_pars->map[i] - 20;
+        p.y = map_pars->map[i + 1] - 20;
         p.z =  map_pars->map[i + 2];
 		get_screen_pos(p, &sx, &sy, &mvp);
 		ft_printf("x : %d          ", sx);
@@ -444,7 +446,7 @@ int	main(int ac, char **av)
     info.title = "ENORME CACA";
     info.width = WIDTH;
     info.height = HEIGHT;
-	int	i = 0;
+	// int	i = 0;
 	if (ac != 2)
 	{
 		ft_printf("./fdf <map>");
@@ -456,25 +458,26 @@ int	main(int ac, char **av)
 		ft_printf("parsing error from: %s", av[1]);
 		return (EXIT_FAILURE);	
 	}
-	while (i < map_pars.y_max * map_pars.x_max * 3)
-	{
-		ft_printf("x : %d\n", map_pars.map[i]);
-		ft_printf("y : %d\n", map_pars.map[i + 1]);
-		ft_printf("z : %d\n", map_pars.map[i + 2]);
-		ft_printf("\n");
-		i += 3;
-	}
-	i = 0;
+	// while (i < map_pars.y_max * map_pars.x_max * 3)
+	// {
+	// 	ft_printf("x : %d\n", map_pars.map[i]);
+	// 	ft_printf("y : %d\n", map_pars.map[i + 1]);
+	// 	ft_printf("z : %d\n", map_pars.map[i + 2]);
+	// 	ft_printf("\n");
+	// 	i += 3;
+	// }
+	// i = 0;
 	ft_printf("\n");
 	ft_printf("\n");
-	while (i < map_pars.y_max * map_pars.x_max)
-	{
-		printf("color :%ld \n", map_pars.color_map[i]);
-		i++;
-	}
+	// while (i < map_pars.y_max * map_pars.x_max)
+	// {
+		// printf("color :%ld \n", map_pars.color_map[i]);
+		// i++;
+	// }
 	caca.mlx = mlx_init();
     caca.win = mlx_new_window(caca.mlx, &info);
     caca.img = mlx_new_image(caca.mlx, WIDTH, HEIGHT);
+	mlx_set_fps_goal(caca.mlx, 60);
 	render_isometric (&map_pars, &caca);
 	mlx_on_event(caca.mlx, caca.win, MLX_KEYDOWN, key_hook, caca.mlx);
     mlx_loop(caca.mlx);
