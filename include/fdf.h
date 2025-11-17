@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 11:13:19 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/17 16:26:16 by gajanvie         ###   ########.fr       */
+/*   Updated: 2025/11/17 17:00:33 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,6 +58,7 @@ typedef struct s_window_render
 	float	y_axe;
 	float	x_axe;
 	t_mat4	mvp;
+	int	color_bool;
 } t_window_render;
 
 typedef struct s_map_pars

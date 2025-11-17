@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 10:47:21 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/17 16:35:05 by gajanvie         ###   ########.fr       */
+/*   Updated: 2025/11/17 17:33:44 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -206,12 +206,12 @@ void	convert_int(t_map_pars *map_pars, t_window_render *caca)
 				if (color_str[0] == '0' && (color_str[1] == 'x' || color_str[1] == 'X'))
                     color_str += 2;
 				if (*color_str == '\0')
-					caca->color_map[n] = 0xFFFFFFUL;
+					caca->color_map[n] = 0xFFFFFFFF;
 				else
 					caca->color_map[n] = ft_atol_base(color_str, "0123456789abcdef");
 			}
 			else
-				caca->color_map[n] = 0xFFFFFFUL;
+				caca->color_map[n] = 0xFFFFFFFF;
 			n++;
 			caca->map[j] = k;
 			caca->map[j + 1] = i;
@@ -433,7 +433,12 @@ void	draw_every_point(t_window_render *caca)
 		//ft_printf("x : %d          ", sx);
 		//ft_printf("y : %d\n", sy);
 		if (sx >= 0 && sx < WIDTH && sy >= 0 && sy < HEIGHT)
-            draw_point(sx, sy, 0xE0115FFF, caca);
+		{
+			if (caca->color_map[i / 3] != 0x000000FF && caca->color_bool == 1)
+				draw_point(sx, sy, caca->color_map[i/3], caca);
+			else
+				draw_point(sx, sy, 0xFF0000FF, caca);
+		}
 		i += 3;
 	}
 }
@@ -447,9 +452,9 @@ void key_hook(int key, void* param)
 void key_zoom(int button, void* param)
 {
 	if (button == 1)
-		*(float *)param += 1.0f;
+		*(float *)param += 0.5f;
 	if (button == 2 && *(float *)param > 0)
-		*(float *)param -= 1.0f;
+		*(float *)param -= 0.5f;
 }
 
 void key_moove(int key, void* param)
@@ -471,6 +476,14 @@ void key_moove(int key, void* param)
 		caca->x_axe += 20.0f;
 	if (key == 26)
 		caca->x_axe -= 20.0f;
+	if (key == 6)
+		caca->color_bool = -caca->color_bool;
+}
+
+void window_hook(int event, void* param)
+{
+    if(event == 0)
+        mlx_loop_end((mlx_context)param);
 }
 
 void update(void* param)
@@ -490,7 +503,7 @@ int	main(int ac, char **av)
 	t_map_pars	map_pars;
 	t_window_render	caca;
 	mlx_window_create_info info = { 0 };
-    info.title = "ENORME CACA QUI PEUT BOUGE";
+    info.title = "ENORME CACA QUI PEUT BOUGE ET CHANGE DE COULEUR";
     info.width = WIDTH;
     info.height = HEIGHT;
 	// int	i = 0;
@@ -525,11 +538,13 @@ int	main(int ac, char **av)
     caca.win = mlx_new_window(caca.mlx, &info);
     caca.img = mlx_new_image(caca.mlx, WIDTH, HEIGHT);
 	caca.zoom = 15.0f;
-	caca.x_axe = 0.0f;
-	caca.y_axe = -400.0f;
+	caca.x_axe = -WIDTH / 4;
+	caca.y_axe = -HEIGHT / 4;
+	caca.color_bool = 1;
 	mlx_set_fps_goal(caca.mlx, 60);
 	mlx_on_event(caca.mlx, caca.win, MLX_KEYDOWN, key_hook, caca.mlx);
 	mlx_on_event(caca.mlx, caca.win, MLX_KEYDOWN, key_moove, &caca);
+	mlx_on_event(caca.mlx, caca.win, MLX_WINDOW_EVENT, window_hook, caca.mlx);
 	mlx_on_event(caca.mlx, caca.win, MLX_MOUSEWHEEL, key_zoom, &caca.zoom);
 	mlx_add_loop_hook(caca.mlx, update, &caca);
     mlx_loop(caca.mlx);
