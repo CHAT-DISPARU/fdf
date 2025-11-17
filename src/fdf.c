@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 10:47:21 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/16 19:53:41 by gajanvie         ###   ########.fr       */
+/*   Updated: 2025/11/17 16:35:05 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -127,7 +127,7 @@ int	map_valid(char	**all_line)
 	return (0);
 }
 
-int	len_valid (t_map_pars *map_pars)
+int	len_valid (t_map_pars *map_pars, t_window_render *caca)
 {
 	char	**line_split;
 	int		len;
@@ -153,19 +153,19 @@ int	len_valid (t_map_pars *map_pars)
 		free_all(line_split);
 		i++;
 	}
-	map_pars->y_max = i;
+	caca->y_max = i;
 	return (len);
 }
 
-void cleanup_map(t_map_pars *map_pars)
+void cleanup_map(t_window_render *caca)
 {
-    free(map_pars->map);
-    free(map_pars->color_map);
-    map_pars->map = NULL;
-    map_pars->color_map = NULL;
+    free(caca->map);
+    free(caca->color_map);
+    caca->map = NULL;
+    caca->color_map = NULL;
 }
 
-void	convert_int(t_map_pars *map_pars)
+void	convert_int(t_map_pars *map_pars, t_window_render *caca)
 {	
 	char	**line_split;
 	int		i;
@@ -178,12 +178,12 @@ void	convert_int(t_map_pars *map_pars)
 	i = 0;
 	j = 0;
 	n = 0;
-	map_pars->map = malloc (sizeof(int) * map_pars->y_max * map_pars->x_max * 3);
-	map_pars->color_map = malloc (sizeof(long) * map_pars->y_max * map_pars->x_max);
-	if (!map_pars->map || !map_pars->color_map)
+	caca->map = malloc (sizeof(int) * caca->y_max * caca->x_max * 3);
+	caca->color_map = malloc (sizeof(long) * caca->y_max * caca->x_max);
+	if (!caca->map || !caca->color_map)
 	{
-		if (!map_pars->color_map)
-			free(map_pars->map);
+		if (!caca->color_map)
+			free(caca->map);
         mess_error("malloc map", 1);
 	}
 	while (map_pars->all_line[i])
@@ -193,7 +193,7 @@ void	convert_int(t_map_pars *map_pars)
 		if (!line_split)
 		{
 			free_all(map_pars->all_line);
-			cleanup_map(map_pars);
+			cleanup_map(caca);
 			mess_error("malloc parsing:", EXIT_FAILURE);
 		}
 		while (line_split[k])
@@ -206,16 +206,16 @@ void	convert_int(t_map_pars *map_pars)
 				if (color_str[0] == '0' && (color_str[1] == 'x' || color_str[1] == 'X'))
                     color_str += 2;
 				if (*color_str == '\0')
-					map_pars->color_map[n] = 0xFFFFFFUL;
+					caca->color_map[n] = 0xFFFFFFUL;
 				else
-					map_pars->color_map[n] = ft_atol_base(color_str, "0123456789abcdef");
+					caca->color_map[n] = ft_atol_base(color_str, "0123456789abcdef");
 			}
 			else
-				map_pars->color_map[n] = 0xFFFFFFUL;
+				caca->color_map[n] = 0xFFFFFFUL;
 			n++;
-			map_pars->map[j] = k;
-			map_pars->map[j + 1] = i;
-			map_pars->map[j + 2] = ft_atoi(line_split[k]);
+			caca->map[j] = k;
+			caca->map[j + 1] = i;
+			caca->map[j + 2] = ft_atoi(line_split[k]);
 			j += 3;
 			k++;
 		}
@@ -224,7 +224,7 @@ void	convert_int(t_map_pars *map_pars)
 	}
 }
 
-void	parse_map(char *file, t_map_pars *map_pars)
+void	parse_map(char *file, t_map_pars *map_pars, t_window_render *caca)
 {
 	int	fd;
 	char *line;
@@ -240,19 +240,18 @@ void	parse_map(char *file, t_map_pars *map_pars)
 		free(line);
 		line = get_next_line(fd);
 	}
-	map_pars->x_max = len_valid(map_pars);
-	if (map_pars->x_max > 0)
-		convert_int(map_pars);
+	caca->x_max = len_valid(map_pars, caca);
+	if (caca->x_max > 0)
+		convert_int(map_pars, caca);
 	else 
-
-		map_pars->map = NULL;
+		caca->map = NULL;
 	free_all(map_pars->all_line);
 }
 
-void	free_all_int_tabs(t_map_pars *map_pars)
+void	free_all_int_tabs(t_window_render *caca)
 {
-	free(map_pars->map);
-	free(map_pars->color_map);
+	free(caca->map);
+	free(caca->color_map);
 }
 
 void mat4_initial(t_mat4 *mat)
@@ -322,38 +321,41 @@ void create_isometric_model(t_mat4 *model)
 	sy = sinf(ay);
     mat4_initial(&rx);
     rx.m[1][1] = cx;
-    rx.m[1][2] = -sx;
-    rx.m[2][1] = sx;
+    rx.m[1][2] = sx;
+    rx.m[2][1] = -sx;
     rx.m[2][2] = cx;
 	//[ 1    0    0    0 ]
-	//[ 0   cx  -sx   0 ] iverse de wiki prcq on chqnge z et y
-	//[ 0   sx   cx   0 ]
+	//[ 0   cx  sx   0 ] 
+	//[ 0   -sx   cx   0 ]
 	//[ 0    0    0    1 ]
     mat4_initial(&ry);
     ry.m[0][0] = cy;
-    ry.m[0][2] = sy;
-    ry.m[2][0] = -sy;
+    ry.m[0][2] = -sy;
+    ry.m[2][0] = sy;
     ry.m[2][2] = cy;
-	//[ cy   0   sy   0 ]
-	//[  0   1    0   0 ] pareil le sang
-	//[-sy   0   cy   0 ]
+	//[ cy   0   -sy   0 ]
+	//[  0   1    0   0 ]
+	//[sy   0   cy   0 ]
 	//[  0   0    0   1 ]
     *model = mat4_multiply(&ry, &rx);
 }
 
-void create_isometric_view(t_mat4 *view)
+void create_isometric_view(t_mat4 *view, t_window_render *caca)
 {
     mat4_initial(view);
-    view->m[3][2] = -100.0f;
+	view->m[3][2] = caca->y_axe;
+	//view->m[3][2] = caca->y_axe;
+	view->m[3][1] = caca->x_axe;
 }
 
-void create_ortho_projection(t_mat4 *proj)
+void create_ortho_projection(t_mat4 *proj, t_window_render *caca)
 {
     mat4_initial(proj);
-    //proj->m[0][0] = 2.0f / WIDTH;
-    //proj->m[1][1] = 2.0f / HEIGHT;
-	proj->m[0][0] = 15.0f;
-	proj->m[1][1] = 15.0f;
+    proj->m[0][0] = caca->zoom;
+    proj->m[1][1] = -caca->zoom / 3;
+	proj->m[2][2] = caca->zoom;
+    proj->m[3][0] = WIDTH / 2.0f;
+    proj->m[3][1] = HEIGHT / 2.0f;
 }
 
 void	get_screen_pos(t_vec3 p, int *sx, int *sy, t_mat4 *mvp)
@@ -363,8 +365,8 @@ void	get_screen_pos(t_vec3 p, int *sx, int *sy, t_mat4 *mvp)
 
     tx = p.x * mvp->m[0][0] + p.y * mvp->m[1][0] + p.z * mvp->m[2][0] + mvp->m[3][0];
     ty = p.x * mvp->m[0][1] + p.y * mvp->m[1][1] + p.z * mvp->m[2][1] + mvp->m[3][1];
-    *sx = (int)(tx + WIDTH / 2);
-    *sy = (int)(ty + HEIGHT / 2);
+    *sx = (int)(tx);
+    *sy = (int)(ty);
 }
 
 void draw_point(int cx, int cy, unsigned int color, t_window_render *caca)
@@ -392,50 +394,95 @@ void draw_point(int cx, int cy, unsigned int color, t_window_render *caca)
     }
 }
 
-void render_isometric(t_map_pars *map_pars, t_window_render *caca)
+t_mat4	render_isometric(t_window_render *caca)
 {
     t_mat4	model;
 	t_mat4	view;
 	t_mat4	proj;
 	t_mat4	mv;
 	t_mat4	mvp;
-    int		i;
+
+    create_isometric_model(&model);
+    create_isometric_view(&view, caca);
+    create_ortho_projection(&proj, caca);
+    mv = mat4_multiply(&view, &model);
+    mvp = mat4_multiply(&proj, &mv);
+	return (mvp);
+}
+
+void	draw_every_point(t_window_render *caca)
+{
+	int		i;
     int		sx;
 	int		sy;
 	t_vec3	p;
 
-    i = 0;
+	i = 0;
     while (i < WIDTH * HEIGHT)
 	{
         caca->pixels[i].rgba = 0x000000FF;
 		i++;
 	}
-    create_isometric_model(&model);
-    create_isometric_view(&view);
-    create_ortho_projection(&proj);
-    mv = mat4_multiply(&view, &model);
-    mvp = mat4_multiply(&proj, &mv);
-    i = 0;
-    while (i < map_pars->x_max * map_pars->y_max * 3)
+	i = 0;
+    while (i < caca->x_max * caca->y_max * 3)
 	{
-        p.x = map_pars->map[i] - 20;
-        p.y = map_pars->map[i + 1] - 20;
-        p.z =  map_pars->map[i + 2];
-		get_screen_pos(p, &sx, &sy, &mvp);
-		ft_printf("x : %d          ", sx);
-		ft_printf("y : %d\n", sy);
+        p.x = caca->map[i];
+        p.y = caca->map[i + 2];
+        p.z =  caca->map[i + 1];
+		get_screen_pos(p, &sx, &sy, &caca->mvp);
+		//ft_printf("x : %d          ", sx);
+		//ft_printf("y : %d\n", sy);
 		if (sx >= 0 && sx < WIDTH && sy >= 0 && sy < HEIGHT)
-            draw_point(sx, sy, 0xF40210FF, caca);
+            draw_point(sx, sy, 0xE0115FFF, caca);
 		i += 3;
 	}
-	mlx_set_image_region(caca->mlx, caca->img, 0, 0, WIDTH, HEIGHT, caca->pixels);
-    mlx_put_image_to_window(caca->mlx, caca->win, caca->img, 0, 0);
 }
 
 void key_hook(int key, void* param)
 {
-    if(key == 41)
-        mlx_loop_end((mlx_context)param);
+	if (key == 41)
+		mlx_loop_end((mlx_context)param);
+}
+
+void key_zoom(int button, void* param)
+{
+	if (button == 1)
+		*(float *)param += 1.0f;
+	if (button == 2 && *(float *)param > 0)
+		*(float *)param -= 1.0f;
+}
+
+void key_moove(int key, void* param)
+{
+	t_window_render *caca;
+
+	caca = (t_window_render*)param;
+	if (key == 4)
+	{
+		caca->x_axe -= 10.0f;
+		caca->y_axe += 20.0f;
+	}
+	if (key == 7)
+	{
+		caca->x_axe += 10.0f;
+		caca->y_axe -= 20.0f;
+	}
+	if (key == 22)
+		caca->x_axe += 20.0f;
+	if (key == 26)
+		caca->x_axe -= 20.0f;
+}
+
+void update(void* param)
+{
+    t_window_render *caca;
+
+	caca = (t_window_render*)param;
+	mlx_clear_window(caca->mlx, caca->win, (mlx_color){ .rgba = 0x000000FF });
+	caca->mvp = render_isometric(caca);
+	draw_every_point(caca);
+	mlx_set_image_region(caca->mlx, caca->img, 0, 0, WIDTH, HEIGHT, caca->pixels);
+	mlx_put_image_to_window(caca->mlx, caca->win, caca->img, 0, 0);
 }
 
 int	main(int ac, char **av)
@@ -443,7 +490,7 @@ int	main(int ac, char **av)
 	t_map_pars	map_pars;
 	t_window_render	caca;
 	mlx_window_create_info info = { 0 };
-    info.title = "ENORME CACA";
+    info.title = "ENORME CACA QUI PEUT BOUGE";
     info.width = WIDTH;
     info.height = HEIGHT;
 	// int	i = 0;
@@ -452,8 +499,8 @@ int	main(int ac, char **av)
 		ft_printf("./fdf <map>");
 		return (EXIT_FAILURE);
 	}
-	parse_map(av[1], &map_pars);
-	if (map_pars.map == NULL)
+	parse_map(av[1], &map_pars, &caca);
+	if (caca.map == NULL)
 	{
 		ft_printf("parsing error from: %s", av[1]);
 		return (EXIT_FAILURE);	
@@ -477,11 +524,16 @@ int	main(int ac, char **av)
 	caca.mlx = mlx_init();
     caca.win = mlx_new_window(caca.mlx, &info);
     caca.img = mlx_new_image(caca.mlx, WIDTH, HEIGHT);
+	caca.zoom = 15.0f;
+	caca.x_axe = 0.0f;
+	caca.y_axe = -400.0f;
 	mlx_set_fps_goal(caca.mlx, 60);
-	render_isometric (&map_pars, &caca);
 	mlx_on_event(caca.mlx, caca.win, MLX_KEYDOWN, key_hook, caca.mlx);
+	mlx_on_event(caca.mlx, caca.win, MLX_KEYDOWN, key_moove, &caca);
+	mlx_on_event(caca.mlx, caca.win, MLX_MOUSEWHEEL, key_zoom, &caca.zoom);
+	mlx_add_loop_hook(caca.mlx, update, &caca);
     mlx_loop(caca.mlx);
-	free_all_int_tabs(&map_pars);
+	free_all_int_tabs(&caca);
 	mlx_destroy_image(caca.mlx, caca.img);
 	mlx_destroy_window(caca.mlx, caca.win);
     mlx_destroy_context(caca.mlx);
