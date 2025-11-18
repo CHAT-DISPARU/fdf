@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 10:47:21 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/17 17:33:44 by gajanvie         ###   ########.fr       */
+/*   Updated: 2025/11/18 10:43:45 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -250,6 +250,7 @@ void	parse_map(char *file, t_map_pars *map_pars, t_window_render *caca)
 
 void	free_all_int_tabs(t_window_render *caca)
 {
+	free(caca->map_screen);
 	free(caca->map);
 	free(caca->color_map);
 }
@@ -430,14 +431,14 @@ void	draw_every_point(t_window_render *caca)
         p.y = caca->map[i + 2];
         p.z =  caca->map[i + 1];
 		get_screen_pos(p, &sx, &sy, &caca->mvp);
-		//ft_printf("x : %d          ", sx);
-		//ft_printf("y : %d\n", sy);
 		if (sx >= 0 && sx < WIDTH && sy >= 0 && sy < HEIGHT)
 		{
 			if (caca->color_map[i / 3] != 0x000000FF && caca->color_bool == 1)
 				draw_point(sx, sy, caca->color_map[i/3], caca);
 			else
 				draw_point(sx, sy, 0xFF0000FF, caca);
+			caca->map_screen[i/3 * 2] = sx;
+			caca->map_screen[(i/3 * 2) + 1] = sy;
 		}
 		i += 3;
 	}
@@ -486,6 +487,102 @@ void window_hook(int event, void* param)
         mlx_loop_end((mlx_context)param);
 }
 
+void	algo_line(t_window_render *caca, int idx, int idx2, unsigned long color)
+{
+    t_line_algo		vars;
+	int				idx_pixel;
+	
+	vars.x0 = caca->map_screen[idx];
+	vars.y0 = caca->map_screen[idx + 1];
+	vars.x1 = caca->map_screen[idx2];
+	vars.y1 = caca->map_screen[idx2 + 1];
+	vars.dx = abs(vars.x1 - vars.x0);
+	vars.dy = abs(vars.y1 - vars.y0);
+    if (vars.x0 < vars.x1)
+		vars.sx = 1;
+	else
+		vars.sx = -1;
+    if (vars.y0 < vars.y1)
+		vars.sy = 1;
+	else 
+		vars.sy = -1;
+   vars.err = vars.dx - vars.dy;
+    while (1)
+    {
+        idx_pixel = ;
+        caca->pixels[idx_pixel].rgba = color;
+		if (vars.x0 == vars.x1 && vars.y0 == vars.y1)
+        	break;
+        vars.e2 = 2*vars.err;
+        if (vars.e2 > (int)-vars.dy)
+        {
+            vars.err = vars.err - vars.dy;
+            vars.x0 += vars.sx;
+        }
+        if (vars.e2 < (int)vars.dx) 
+        {
+            vars.err = vars.err + vars.dx;
+            vars.y0 += vars.sy;
+        }
+	}
+}
+
+void	draw_vertical(t_window_render *caca)
+{
+	int	i;
+	int	j;
+	int	idx;
+	int idx2;
+
+	j = 0;
+	while (j < caca->y_max)
+	{
+		i = 0;
+		while (i < caca->x_max - 1)
+		{
+			idx  = (j * caca->x_max + i) * 2;
+			idx2 = (j * caca->x_max + (i + 1)) * 2;
+			if (caca->color_bool == 1)
+				algo_line(caca, idx, idx2, caca->color_map[j * caca->x_max + i]);
+			else
+				algo_line(caca, idx, idx2, 0xFF0000FF);
+			i ++;
+		}
+		j++;
+	}
+}
+
+void	draw_horizontal(t_window_render *caca)
+{
+	int	i;
+	int	j;
+	int	idx;
+	int idx2;
+
+	j = 0;
+	while (j < caca->y_max - 1)
+	{
+		i = 0;
+		while (i < caca->x_max)
+		{
+			idx  = (j * caca->x_max + i) * 2;
+            idx2 = ((j + 1) * caca->x_max + i) * 2;
+			if (caca->color_bool == 1)
+				algo_line(caca, idx, idx2, caca->color_map[j * caca->x_max + i]);
+			else
+				algo_line(caca, idx, idx2, 0xFF0000FF);
+			i ++;
+		}
+		j++;
+	}
+}
+
+void	draw_line(t_window_render *caca)
+{
+	draw_vertical(caca);
+	draw_horizontal(caca);	
+}
+
 void update(void* param)
 {
     t_window_render *caca;
@@ -494,6 +591,7 @@ void update(void* param)
 	mlx_clear_window(caca->mlx, caca->win, (mlx_color){ .rgba = 0x000000FF });
 	caca->mvp = render_isometric(caca);
 	draw_every_point(caca);
+	draw_line(caca);
 	mlx_set_image_region(caca->mlx, caca->img, 0, 0, WIDTH, HEIGHT, caca->pixels);
 	mlx_put_image_to_window(caca->mlx, caca->win, caca->img, 0, 0);
 }
@@ -541,6 +639,15 @@ int	main(int ac, char **av)
 	caca.x_axe = -WIDTH / 4;
 	caca.y_axe = -HEIGHT / 4;
 	caca.color_bool = 1;
+	caca.map_screen = malloc(sizeof(int) * caca.x_max * caca.y_max * 2);
+	if (!caca.map_screen)
+	{
+		free_all_int_tabs(&caca);
+		mlx_destroy_image(caca.mlx, caca.img);
+		mlx_destroy_window(caca.mlx, caca.win);
+    	mlx_destroy_context(caca.mlx);
+		return (0);
+	}
 	mlx_set_fps_goal(caca.mlx, 60);
 	mlx_on_event(caca.mlx, caca.win, MLX_KEYDOWN, key_hook, caca.mlx);
 	mlx_on_event(caca.mlx, caca.win, MLX_KEYDOWN, key_moove, &caca);

@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 11:13:19 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/17 17:00:33 by gajanvie         ###   ########.fr       */
+/*   Updated: 2025/11/18 10:00:36 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@
 # include <math.h>
 # include <mlx_extended.h>
 
-# define WIDTH       1600
+# define WIDTH       1500
 # define HEIGHT      1000
 # define M_PI        3.14159265358979323846
 
@@ -43,6 +43,20 @@ typedef struct s_mat4
 {
     float m[4][4];
 }                 t_mat4;
+
+typedef struct s_line_algo
+{
+    unsigned int	dx;
+    unsigned int	dy;
+    int 			sx;
+	int				sy;
+	int				err;
+	int				e2;
+	int				x0;
+	int				x1;
+	int				y0;
+	int				y1;
+}                 t_line_algo;
 
 typedef struct s_window_render
 {
@@ -59,6 +73,7 @@ typedef struct s_window_render
 	float	x_axe;
 	t_mat4	mvp;
 	int	color_bool;
+	int		*map_screen;
 } t_window_render;
 
 typedef struct s_map_pars
