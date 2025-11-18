@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/05 16:10:15 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/14 10:44:06 by gajanvie         ###   ########.fr       */
+/*   Updated: 2025/11/18 14:31:59 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,10 +52,10 @@ int	check_base(char *base)
 	return (1);
 }
 
-unsigned long	ft_atol_base(char *str, char *base)
+unsigned int	ft_atol_base(char *str, char *base)
 {
 	int		i;
-	long	result;
+	long long	result;
 
 	i = 0;
 	result = 0;
@@ -70,7 +70,7 @@ unsigned long	ft_atol_base(char *str, char *base)
 			result = (result * ft_strlen(base)) + get_index(base, str[i]);
 			i ++;
 		}
-		return (result);
+		return ((unsigned int)result);
 	}
 	return (0);
 }

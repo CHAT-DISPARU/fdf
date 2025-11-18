@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 11:13:19 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/18 10:00:36 by gajanvie         ###   ########.fr       */
+/*   Updated: 2025/11/18 18:36:52 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,7 +66,7 @@ typedef struct s_window_render
     mlx_color pixels[HEIGHT * WIDTH];
 	float	zoom;
 	int		*map;
-	unsigned long	*color_map;
+	unsigned int	*color_map;
 	int	x_max;
 	int	y_max;
 	float	y_axe;
@@ -74,6 +74,13 @@ typedef struct s_window_render
 	t_mat4	mvp;
 	int	color_bool;
 	int		*map_screen;
+	int		color_back;
+	int		key_table[512];
+	int		old_key_table[512];
+	int		line_show;
+	int		deph;
+	float	angle_x;
+	float	angle_y;
 } t_window_render;
 
 typedef struct s_map_pars

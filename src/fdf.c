@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 10:47:21 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/18 10:43:45 by gajanvie         ###   ########.fr       */
+/*   Updated: 2025/11/18 18:41:07 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,6 +134,8 @@ int	len_valid (t_map_pars *map_pars, t_window_render *caca)
 	int		i;
 
 	i = 0;
+	if (!map_pars->all_line)
+		return (0);
 	line_split = ft_split(map_pars->all_line[i]);
 	if (!line_split)
 		mess_error("malloc parsing:", EXIT_FAILURE);
@@ -165,6 +167,11 @@ void cleanup_map(t_window_render *caca)
     caca->color_map = NULL;
 }
 
+unsigned int byteswap32(unsigned int t)
+{
+	return (t >> 24 | ((t >> 8) & 0xFF00) | ((t >> 8) & 0xFF0000) | t << 24);
+}
+
 void	convert_int(t_map_pars *map_pars, t_window_render *caca)
 {	
 	char	**line_split;
@@ -179,7 +186,7 @@ void	convert_int(t_map_pars *map_pars, t_window_render *caca)
 	j = 0;
 	n = 0;
 	caca->map = malloc (sizeof(int) * caca->y_max * caca->x_max * 3);
-	caca->color_map = malloc (sizeof(long) * caca->y_max * caca->x_max);
+	caca->color_map = malloc (sizeof(unsigned int) * caca->y_max * caca->x_max);
 	if (!caca->map || !caca->color_map)
 	{
 		if (!caca->color_map)
@@ -208,7 +215,13 @@ void	convert_int(t_map_pars *map_pars, t_window_render *caca)
 				if (*color_str == '\0')
 					caca->color_map[n] = 0xFFFFFFFF;
 				else
-					caca->color_map[n] = ft_atol_base(color_str, "0123456789abcdef");
+				{
+					if (*(color_str - 1) == 'x')
+						caca->color_map[n] = ft_atol_base(color_str, "0123456789abcdef");
+					else
+						caca->color_map[n] = ft_atol_base(color_str, "0123456789ABCDEF");
+					caca->color_map[n] = caca->color_map[n] << 8 | 0xFF;
+				}
 			}
 			else
 				caca->color_map[n] = 0xFFFFFFFF;
@@ -232,7 +245,7 @@ void	parse_map(char *file, t_map_pars *map_pars, t_window_render *caca)
 	map_pars->all_line = NULL;
 	fd = open(file, O_RDONLY);
 	if (fd == -1)
-		mess_error("open map", 1);
+		return ;
 	line = get_next_line(fd);
 	while (line)
 	{
@@ -353,7 +366,7 @@ void create_ortho_projection(t_mat4 *proj, t_window_render *caca)
 {
     mat4_initial(proj);
     proj->m[0][0] = caca->zoom;
-    proj->m[1][1] = -caca->zoom / 3;
+    proj->m[1][1] = -caca->zoom / caca->deph;
 	proj->m[2][2] = caca->zoom;
     proj->m[3][0] = WIDTH / 2.0f;
     proj->m[3][1] = HEIGHT / 2.0f;
@@ -387,7 +400,12 @@ void draw_point(int cx, int cy, unsigned int color, t_window_render *caca)
             if (x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT)
 			{
                 idx = y * WIDTH + x;
-            	caca->pixels[idx].rgba = color;
+				if (color == 0xFFFFFFFF && caca->color_back == -1)
+					caca->pixels[idx].rgba = 0x000000FF;
+				else if (color == 0x000000FF && caca->color_back == 1)
+					caca->pixels[idx].rgba = 0xFFFFFFFF;
+				else
+            		caca->pixels[idx].rgba = color;
             }
             x++;
         }
@@ -395,17 +413,52 @@ void draw_point(int cx, int cy, unsigned int color, t_window_render *caca)
     }
 }
 
+void mat4_rotate_y(t_mat4 *m, float angle)
+{
+    float	c;
+    float	s;
+
+	s = sinf(angle);
+	c = cosf(angle);
+    mat4_initial(m);
+    m->m[0][0] =  c;
+	m->m[0][2] = s;
+    m->m[2][0] = -s;
+	m->m[2][2] = c;
+}
+
+void mat4_rotate_x(t_mat4 *m, float angle)
+{
+    float	c;
+	float	s;
+
+	c = cosf(angle);
+	s = sinf(angle);
+    mat4_initial(m);
+    m->m[1][1] =  c;
+	m->m[1][2] = -s;
+    m->m[2][1] =  s;
+	m->m[2][2] =  c;
+}
+
 t_mat4	render_isometric(t_window_render *caca)
 {
     t_mat4	model;
 	t_mat4	view;
 	t_mat4	proj;
-	t_mat4	mv;
 	t_mat4	mvp;
+	t_mat4	mv;
+	//t_mat4	rotate;
+	//t_mat4	rotate_x;
+	//t_mat4	rotate_y;
 
     create_isometric_model(&model);
     create_isometric_view(&view, caca);
     create_ortho_projection(&proj, caca);
+	//mat4_rotate_x(&rotate_x, caca->angle_x);
+	//mat4_rotate_y(&rotate_y, caca->angle_y);
+	//rotate = mat4_multiply(&rotate_y, &rotate_x);
+	//model = mat4_multiply(&model, &rotate);
     mv = mat4_multiply(&view, &model);
     mvp = mat4_multiply(&proj, &mv);
 	return (mvp);
@@ -421,7 +474,10 @@ void	draw_every_point(t_window_render *caca)
 	i = 0;
     while (i < WIDTH * HEIGHT)
 	{
-        caca->pixels[i].rgba = 0x000000FF;
+		if (caca->color_back == 1)
+        	caca->pixels[i].rgba = 0x000000FF;
+		else
+			caca->pixels[i].rgba = 0xFFFFFFFF;
 		i++;
 	}
 	i = 0;
@@ -436,9 +492,14 @@ void	draw_every_point(t_window_render *caca)
 			if (caca->color_map[i / 3] != 0x000000FF && caca->color_bool == 1)
 				draw_point(sx, sy, caca->color_map[i/3], caca);
 			else
-				draw_point(sx, sy, 0xFF0000FF, caca);
+				draw_point(sx, sy, 0x000000FF, caca);
 			caca->map_screen[i/3 * 2] = sx;
 			caca->map_screen[(i/3 * 2) + 1] = sy;
+		}
+		else 
+		{
+			caca->map_screen[i/3 * 2] = -10;
+			caca->map_screen[(i/3 * 2) + 1] = -10;
 		}
 		i += 3;
 	}
@@ -458,27 +519,21 @@ void key_zoom(int button, void* param)
 		*(float *)param -= 0.5f;
 }
 
-void key_moove(int key, void* param)
+void key_up(int key, void* param)
 {
 	t_window_render *caca;
 
 	caca = (t_window_render*)param;
-	if (key == 4)
-	{
-		caca->x_axe -= 10.0f;
-		caca->y_axe += 20.0f;
-	}
-	if (key == 7)
-	{
-		caca->x_axe += 10.0f;
-		caca->y_axe -= 20.0f;
-	}
-	if (key == 22)
-		caca->x_axe += 20.0f;
-	if (key == 26)
-		caca->x_axe -= 20.0f;
-	if (key == 6)
-		caca->color_bool = -caca->color_bool;
+	caca->key_table[key] = 0;
+	printf("%d\n", key);
+}
+
+void key_down(int key, void* param)
+{
+	t_window_render *caca;
+
+	caca = (t_window_render*)param;
+	caca->key_table[key] = 1;
 }
 
 void window_hook(int event, void* param)
@@ -506,13 +561,25 @@ void	algo_line(t_window_render *caca, int idx, int idx2, unsigned long color)
 		vars.sy = 1;
 	else 
 		vars.sy = -1;
-   vars.err = vars.dx - vars.dy;
+	vars.err = vars.dx - vars.dy;
+	if ((vars.x0 < 0 || vars.x1 < 0) || (vars.x0 > WIDTH || vars.x1 > WIDTH))
+		return ;
+	if ((vars.y0 < 0 || vars.y1 < 0) || (vars.y0 > HEIGHT || vars.y1 > HEIGHT))
+		return ;
     while (1)
     {
-        idx_pixel = ;
-        caca->pixels[idx_pixel].rgba = color;
+		if (vars.x0 >= 0 && vars.x0 < WIDTH && vars.y0 >= 0 && vars.y0 < HEIGHT)
+		{
+        	idx_pixel = vars.y0 * WIDTH + vars.x0;
+        	if (color == 0xFFFFFFFF && caca->color_back == -1)
+				caca->pixels[idx_pixel].rgba = 0x000000FF;
+			else if (color == 0x000000FF && caca->color_back == 1)
+				caca->pixels[idx_pixel].rgba = 0xFFFFFFFF;
+			else
+            	caca->pixels[idx_pixel].rgba = color;
+		}
 		if (vars.x0 == vars.x1 && vars.y0 == vars.y1)
-        	break;
+        	break ;
         vars.e2 = 2*vars.err;
         if (vars.e2 > (int)-vars.dy)
         {
@@ -545,7 +612,7 @@ void	draw_vertical(t_window_render *caca)
 			if (caca->color_bool == 1)
 				algo_line(caca, idx, idx2, caca->color_map[j * caca->x_max + i]);
 			else
-				algo_line(caca, idx, idx2, 0xFF0000FF);
+				algo_line(caca, idx, idx2, 0x000000FF);
 			i ++;
 		}
 		j++;
@@ -570,7 +637,7 @@ void	draw_horizontal(t_window_render *caca)
 			if (caca->color_bool == 1)
 				algo_line(caca, idx, idx2, caca->color_map[j * caca->x_max + i]);
 			else
-				algo_line(caca, idx, idx2, 0xFF0000FF);
+				algo_line(caca, idx, idx2, 0x000000FF);
 			i ++;
 		}
 		j++;
@@ -579,29 +646,94 @@ void	draw_horizontal(t_window_render *caca)
 
 void	draw_line(t_window_render *caca)
 {
-	draw_vertical(caca);
-	draw_horizontal(caca);	
+	if (caca->line_show == 2)
+		draw_vertical(caca);
+	if (caca->line_show == 1)
+		draw_horizontal(caca);
+	if (caca->line_show == 3)
+	{
+		draw_vertical(caca);
+		draw_horizontal(caca);
+	} 
+}
+
+void	set_data(t_window_render *caca)
+{
+	caca->x_axe = -WIDTH / 4;
+	caca->y_axe = -HEIGHT / 4;
+	caca->color_bool = 1;
+	caca->color_back = 1;
+	caca->line_show = 3;
+	caca->deph = 10;
+	caca->zoom = 15.0f;
+	caca->angle_x = 0.0f;
+	caca->angle_y = 0.0f;
 }
 
 void update(void* param)
 {
     t_window_render *caca;
+	unsigned int	color_back;
 
 	caca = (t_window_render*)param;
-	mlx_clear_window(caca->mlx, caca->win, (mlx_color){ .rgba = 0x000000FF });
+	if (caca->key_table[7] == 1)
+	{
+		caca->x_axe -= 10.0f;
+		caca->y_axe += 20.0f;
+	}
+	if (caca->key_table[4] == 1)
+	{
+		caca->x_axe += 10.0f;
+		caca->y_axe -= 20.0f;
+	}
+	if (caca->key_table[26] == 1)
+		caca->x_axe += 20.0f;
+	if (caca->key_table[22] == 1)
+		caca->x_axe -= 20.0f;
+	if (caca->key_table[80] == 1)
+		caca->angle_x += 0.1f;
+	if (caca->key_table[79] == 1)
+		caca->angle_x -= 0.1f;
+	if (caca->key_table[82] == 1)
+		caca->angle_y += 0.1f;
+	if (caca->key_table[81] == 1)
+		caca->angle_y -= 0.1f;
+	if (caca->key_table[6] == 1 && caca->old_key_table[6] != 1)
+		caca->color_bool = -caca->color_bool;
+	if (caca->key_table[86] == 1 && caca->deph < 50)
+		caca->deph += 1;
+	if (caca->key_table[87] == 1 && caca->deph > 1)
+		caca->deph -= 1;
+	if (caca->key_table[44] == 1 && caca->old_key_table[44] != 1)
+		caca->color_back = -caca->color_back;
+	if (caca->key_table[21] == 1 && caca->old_key_table[21] != 1)
+		set_data(caca);
+	if (caca->key_table[15] == 1 && caca->old_key_table[15] != 1)
+	{
+		if (caca->line_show == 3)
+			caca->line_show = 0;
+		else
+			caca->line_show += 1;
+	}
+	if (caca->color_back == 1)
+		color_back = 0x000000FF;
+	else
+		color_back = 0xFFFFFFFF;
+	mlx_clear_window(caca->mlx, caca->win, (mlx_color){ .rgba = color_back });
 	caca->mvp = render_isometric(caca);
 	draw_every_point(caca);
 	draw_line(caca);
 	mlx_set_image_region(caca->mlx, caca->img, 0, 0, WIDTH, HEIGHT, caca->pixels);
 	mlx_put_image_to_window(caca->mlx, caca->win, caca->img, 0, 0);
+	ft_memcpy(caca->old_key_table, caca->key_table, sizeof(caca->key_table));
 }
 
 int	main(int ac, char **av)
 {
 	t_map_pars	map_pars;
 	t_window_render	caca;
-	mlx_window_create_info info = { 0 };
-    info.title = "ENORME CACA QUI PEUT BOUGE ET CHANGE DE COULEUR";
+	mlx_window_create_info info;
+    info.title = "i love les femmes gechars";
     info.width = WIDTH;
     info.height = HEIGHT;
 	// int	i = 0;
@@ -611,34 +743,15 @@ int	main(int ac, char **av)
 		return (EXIT_FAILURE);
 	}
 	parse_map(av[1], &map_pars, &caca);
-	if (caca.map == NULL)
+	if (!caca.map)
 	{
-		ft_printf("parsing error from: %s", av[1]);
+		ft_printf("parsing error from: %s\n", av[1]);
 		return (EXIT_FAILURE);	
 	}
-	// while (i < map_pars.y_max * map_pars.x_max * 3)
-	// {
-	// 	ft_printf("x : %d\n", map_pars.map[i]);
-	// 	ft_printf("y : %d\n", map_pars.map[i + 1]);
-	// 	ft_printf("z : %d\n", map_pars.map[i + 2]);
-	// 	ft_printf("\n");
-	// 	i += 3;
-	// }
-	// i = 0;
-	ft_printf("\n");
-	ft_printf("\n");
-	// while (i < map_pars.y_max * map_pars.x_max)
-	// {
-		// printf("color :%ld \n", map_pars.color_map[i]);
-		// i++;
-	// }
 	caca.mlx = mlx_init();
     caca.win = mlx_new_window(caca.mlx, &info);
     caca.img = mlx_new_image(caca.mlx, WIDTH, HEIGHT);
-	caca.zoom = 15.0f;
-	caca.x_axe = -WIDTH / 4;
-	caca.y_axe = -HEIGHT / 4;
-	caca.color_bool = 1;
+	set_data(&caca);
 	caca.map_screen = malloc(sizeof(int) * caca.x_max * caca.y_max * 2);
 	if (!caca.map_screen)
 	{
@@ -650,7 +763,8 @@ int	main(int ac, char **av)
 	}
 	mlx_set_fps_goal(caca.mlx, 60);
 	mlx_on_event(caca.mlx, caca.win, MLX_KEYDOWN, key_hook, caca.mlx);
-	mlx_on_event(caca.mlx, caca.win, MLX_KEYDOWN, key_moove, &caca);
+	mlx_on_event(caca.mlx, caca.win, MLX_KEYDOWN, key_down, &caca);
+	mlx_on_event(caca.mlx, caca.win, MLX_KEYUP, key_up, &caca);
 	mlx_on_event(caca.mlx, caca.win, MLX_WINDOW_EVENT, window_hook, caca.mlx);
 	mlx_on_event(caca.mlx, caca.win, MLX_MOUSEWHEEL, key_zoom, &caca.zoom);
 	mlx_add_loop_hook(caca.mlx, update, &caca);
