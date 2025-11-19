@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 10:47:21 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/18 18:41:07 by gajanvie         ###   ########.fr       */
+/*   Updated: 2025/11/19 11:49:25 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -316,7 +316,7 @@ t_mat4 mat4_multiply(t_mat4 *a, t_mat4 *b)
     return (tmp);
 }
 
-void create_isometric_model(t_mat4 *model)
+void create_isometric_model(t_mat4 *model, t_window_render *caca)
 {
 	t_mat4	rx;
     t_mat4	ry;
@@ -327,8 +327,8 @@ void create_isometric_model(t_mat4 *model)
     float	cy;
     float	sy;
 
-	ax = -35.264f * M_PI / 180.0f;// arctan(1/√2) = angle magique 
-	ay = -45.0f * M_PI / 180.0f;
+	ax = -35.264f * M_PI / 180.0f + caca->angle_y;// arctan(1/√2) = angle magique 
+	ay = -45.0f * M_PI / 180.0f + caca->angle_x;
 	cx = cosf(ax);
 	sx = sinf(ax);
 	cy = cosf(ay);
@@ -452,7 +452,7 @@ t_mat4	render_isometric(t_window_render *caca)
 	//t_mat4	rotate_x;
 	//t_mat4	rotate_y;
 
-    create_isometric_model(&model);
+    create_isometric_model(&model, caca);
     create_isometric_view(&view, caca);
     create_ortho_projection(&proj, caca);
 	//mat4_rotate_x(&rotate_x, caca->angle_x);
