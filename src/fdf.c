@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 10:47:21 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/19 11:49:25 by gajanvie         ###   ########.fr       */
+/*   Updated: 2025/11/19 14:59:31 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -316,7 +316,7 @@ t_mat4 mat4_multiply(t_mat4 *a, t_mat4 *b)
     return (tmp);
 }
 
-void create_isometric_model(t_mat4 *model, t_window_render *caca)
+void create_isometric_model(t_mat4 *model)
 {
 	t_mat4	rx;
     t_mat4	ry;
@@ -327,8 +327,8 @@ void create_isometric_model(t_mat4 *model, t_window_render *caca)
     float	cy;
     float	sy;
 
-	ax = -35.264f * M_PI / 180.0f + caca->angle_y;// arctan(1/√2) = angle magique 
-	ay = -45.0f * M_PI / 180.0f + caca->angle_x;
+	ax = -35.264f * M_PI / 180.0f;// arctan(1/√2) = angle magique 
+	ay = -45.0f * M_PI / 180.0f;
 	cx = cosf(ax);
 	sx = sinf(ax);
 	cy = cosf(ay);
@@ -448,17 +448,17 @@ t_mat4	render_isometric(t_window_render *caca)
 	t_mat4	proj;
 	t_mat4	mvp;
 	t_mat4	mv;
-	//t_mat4	rotate;
-	//t_mat4	rotate_x;
-	//t_mat4	rotate_y;
+	t_mat4	rotate;
+	t_mat4	rotate_x;
+	t_mat4	rotate_y;
 
-    create_isometric_model(&model, caca);
+    create_isometric_model(&model);
     create_isometric_view(&view, caca);
     create_ortho_projection(&proj, caca);
-	//mat4_rotate_x(&rotate_x, caca->angle_x);
-	//mat4_rotate_y(&rotate_y, caca->angle_y);
-	//rotate = mat4_multiply(&rotate_y, &rotate_x);
-	//model = mat4_multiply(&model, &rotate);
+	mat4_rotate_x(&rotate_x, caca->angle_x);
+	mat4_rotate_y(&rotate_y, caca->angle_y);
+	rotate = mat4_multiply(&rotate_x, &rotate_y);
+	model = mat4_multiply(&rotate, &model);
     mv = mat4_multiply(&view, &model);
     mvp = mat4_multiply(&proj, &mv);
 	return (mvp);
@@ -525,7 +525,7 @@ void key_up(int key, void* param)
 
 	caca = (t_window_render*)param;
 	caca->key_table[key] = 0;
-	printf("%d\n", key);
+	//printf("%d\n", key);
 }
 
 void key_down(int key, void* param)
@@ -691,19 +691,19 @@ void update(void* param)
 	if (caca->key_table[22] == 1)
 		caca->x_axe -= 20.0f;
 	if (caca->key_table[80] == 1)
-		caca->angle_x += 0.1f;
+		caca->angle_y += 0.005f;
 	if (caca->key_table[79] == 1)
-		caca->angle_x -= 0.1f;
+		caca->angle_y -= 0.005f;
 	if (caca->key_table[82] == 1)
-		caca->angle_y += 0.1f;
+		caca->angle_x += 0.005f;
 	if (caca->key_table[81] == 1)
-		caca->angle_y -= 0.1f;
+		caca->angle_x -= 0.005f;
 	if (caca->key_table[6] == 1 && caca->old_key_table[6] != 1)
 		caca->color_bool = -caca->color_bool;
 	if (caca->key_table[86] == 1 && caca->deph < 50)
-		caca->deph += 1;
+		caca->deph += 0.5;
 	if (caca->key_table[87] == 1 && caca->deph > 1)
-		caca->deph -= 1;
+		caca->deph -= 0.5;
 	if (caca->key_table[44] == 1 && caca->old_key_table[44] != 1)
 		caca->color_back = -caca->color_back;
 	if (caca->key_table[21] == 1 && caca->old_key_table[21] != 1)
@@ -721,6 +721,7 @@ void update(void* param)
 		color_back = 0xFFFFFFFF;
 	mlx_clear_window(caca->mlx, caca->win, (mlx_color){ .rgba = color_back });
 	caca->mvp = render_isometric(caca);
+	printf("%f : angle x               %f : angle y\n", caca->angle_x, caca->angle_y);
 	draw_every_point(caca);
 	draw_line(caca);
 	mlx_set_image_region(caca->mlx, caca->img, 0, 0, WIDTH, HEIGHT, caca->pixels);

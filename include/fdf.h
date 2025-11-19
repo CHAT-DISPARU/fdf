@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 11:13:19 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/18 18:36:52 by gajanvie         ###   ########.fr       */
+/*   Updated: 2025/11/19 14:22:46 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,7 +78,7 @@ typedef struct s_window_render
 	int		key_table[512];
 	int		old_key_table[512];
 	int		line_show;
-	int		deph;
+	float		deph;
 	float	angle_x;
 	float	angle_y;
 } t_window_render;
