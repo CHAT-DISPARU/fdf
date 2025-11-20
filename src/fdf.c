@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 10:47:21 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/20 18:13:04 by gajanvie         ###   ########.fr       */
+/*   Updated: 2025/11/20 19:43:48 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -188,10 +188,12 @@ unsigned int	find_color(int z)
 		return (0x410043ff);
 	if (z <= -400)
 		return (0x002836ff);
-	if (z > 0 && z < 15)
+	if (z > 0 && z < 5)
+		return (0xebc300ff);
+	if (z >= 5 && z < 15)
 		return (0x7d2c00ff);
 	if (z >= 15 && z < 25)
-		return (0xebc300ff);
+		return (0x725a00ff);
 	if (z >= 25 && z < 35)
 		return (0x32d300ff);
 	if (z >= 35 && z < 65)
@@ -814,7 +816,7 @@ int	main(int ac, char **av)
 	t_map_pars	map_pars;
 	t_window_render	caca;
 	mlx_window_create_info info;
-    info.title = "LE FDF DU PEUPLE";
+    info.title = "le fdf du peuple";
     info.width = WIDTH;
     info.height = HEIGHT;
 	// int	i = 0;
