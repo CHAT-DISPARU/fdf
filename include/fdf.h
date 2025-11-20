@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 11:13:19 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/19 14:22:46 by gajanvie         ###   ########.fr       */
+/*   Updated: 2025/11/20 17:10:58 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,20 @@ typedef struct s_mat4
     float m[4][4];
 }                 t_mat4;
 
+typedef struct	s_lerp_color
+{
+    unsigned char	r1;
+    unsigned char	g1;
+    unsigned char	b1;
+    unsigned char	r2;
+    unsigned char	g2;
+    unsigned char	b2;
+    unsigned char	r;
+    unsigned char	g;
+    unsigned char	b;
+	
+}				t_lerp_color;
+
 typedef struct s_line_algo
 {
     unsigned int	dx;
@@ -56,6 +70,8 @@ typedef struct s_line_algo
 	int				x1;
 	int				y0;
 	int				y1;
+	unsigned int				color;
+	unsigned int				color2;
 }                 t_line_algo;
 
 typedef struct s_window_render
@@ -67,6 +83,7 @@ typedef struct s_window_render
 	float	zoom;
 	int		*map;
 	unsigned int	*color_map;
+	unsigned int	*color_map2;
 	int	x_max;
 	int	y_max;
 	float	y_axe;

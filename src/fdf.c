@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 10:47:21 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/19 14:59:31 by gajanvie         ###   ########.fr       */
+/*   Updated: 2025/11/20 18:13:04 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -163,13 +163,48 @@ void cleanup_map(t_window_render *caca)
 {
     free(caca->map);
     free(caca->color_map);
+	free(caca->color_map2);
     caca->map = NULL;
     caca->color_map = NULL;
+	caca->color_map2 = NULL;
 }
 
 unsigned int byteswap32(unsigned int t)
 {
 	return (t >> 24 | ((t >> 8) & 0xFF00) | ((t >> 8) & 0xFF0000) | t << 24);
+}
+
+unsigned int	find_color(int z)
+{
+	if (z == 0)
+		return (0x0080ffff);
+	if (z < 0 && z > -25)
+		return (0x0f0065ff);
+	if (z <= -25 && z > -50)
+		return (0x00117aff);
+	if (z <= -50 && z > -200)
+		return (0x00074aff);
+	if (z <= -200 && z > -400)
+		return (0x410043ff);
+	if (z <= -400)
+		return (0x002836ff);
+	if (z > 0 && z < 15)
+		return (0x7d2c00ff);
+	if (z >= 15 && z < 25)
+		return (0xebc300ff);
+	if (z >= 25 && z < 35)
+		return (0x32d300ff);
+	if (z >= 35 && z < 65)
+		return (0x005322ff);
+	if (z >= 65 && z < 80)
+		return (0x332900ff);
+	if (z >= 80 && z < 90)
+		return (0xe3ff3aff);
+	if (z >= 90 && z < 115)
+		return (0x6e6e6eff);
+	if (z >= 115 && z < 135)
+		return (0xb9e1ffff);
+	return (0xffffffff);
 }
 
 void	convert_int(t_map_pars *map_pars, t_window_render *caca)
@@ -187,10 +222,16 @@ void	convert_int(t_map_pars *map_pars, t_window_render *caca)
 	n = 0;
 	caca->map = malloc (sizeof(int) * caca->y_max * caca->x_max * 3);
 	caca->color_map = malloc (sizeof(unsigned int) * caca->y_max * caca->x_max);
-	if (!caca->map || !caca->color_map)
+	caca->color_map2 = malloc (sizeof(unsigned int) * caca->y_max * caca->x_max);
+	if (!caca->map || !caca->color_map || !caca->color_map2)
 	{
 		if (!caca->color_map)
 			free(caca->map);
+		if (!caca->color_map2)
+		{
+			free(caca->map);
+			free(caca->color_map);
+		}
         mess_error("malloc map", 1);
 	}
 	while (map_pars->all_line[i])
@@ -225,10 +266,11 @@ void	convert_int(t_map_pars *map_pars, t_window_render *caca)
 			}
 			else
 				caca->color_map[n] = 0xFFFFFFFF;
-			n++;
 			caca->map[j] = k;
 			caca->map[j + 1] = i;
 			caca->map[j + 2] = ft_atoi(line_split[k]);
+			caca->color_map2[n] = find_color(caca->map[j + 2]);
+			n++;
 			j += 3;
 			k++;
 		}
@@ -266,6 +308,7 @@ void	free_all_int_tabs(t_window_render *caca)
 	free(caca->map_screen);
 	free(caca->map);
 	free(caca->color_map);
+	free(caca->color_map2);
 }
 
 void mat4_initial(t_mat4 *mat)
@@ -489,10 +532,10 @@ void	draw_every_point(t_window_render *caca)
 		get_screen_pos(p, &sx, &sy, &caca->mvp);
 		if (sx >= 0 && sx < WIDTH && sy >= 0 && sy < HEIGHT)
 		{
-			if (caca->color_map[i / 3] != 0x000000FF && caca->color_bool == 1)
+			if (caca->color_bool == 1)
 				draw_point(sx, sy, caca->color_map[i/3], caca);
 			else
-				draw_point(sx, sy, 0x000000FF, caca);
+				draw_point(sx, sy,  caca->color_map2[i/3], caca);
 			caca->map_screen[i/3 * 2] = sx;
 			caca->map_screen[(i/3 * 2) + 1] = sy;
 		}
@@ -525,7 +568,6 @@ void key_up(int key, void* param)
 
 	caca = (t_window_render*)param;
 	caca->key_table[key] = 0;
-	//printf("%d\n", key);
 }
 
 void key_down(int key, void* param)
@@ -542,17 +584,54 @@ void window_hook(int event, void* param)
         mlx_loop_end((mlx_context)param);
 }
 
-void	algo_line(t_window_render *caca, int idx, int idx2, unsigned long color)
+unsigned int    lerp_color(unsigned int c1, unsigned int c2, float t)
+{
+	t_lerp_color lerp;
+
+	lerp.r1 = (c1 >> 24) & 0xFF;
+	lerp.g1 = (c1 >> 16) & 0xFF;
+	lerp.b1 = (c1 >> 8) & 0xFF;
+	lerp.r2 = (c2 >> 24) & 0xFF;
+	lerp.g2 = (c2 >> 16) & 0xFF;
+	lerp.b2 = (c2 >> 8) & 0xFF;
+	lerp.r = (unsigned char)(lerp.r1 + t * (lerp.r2 - lerp.r1));
+	lerp.g = (unsigned char)(lerp.g1 + t * (lerp.g2 - lerp.g1));
+	lerp.b = (unsigned char)(lerp.b1 + t * (lerp.b2 - lerp.b1));
+    return ((lerp.r << 24) | (lerp.g << 16) | (lerp.b << 8) | 0xFF);
+}
+
+void	algo_line(t_window_render *caca, int idx, int idx2)
 {
     t_line_algo		vars;
 	int				idx_pixel;
-	
+	float			t;
+	int				max_step;
+	int				step;
+
+	if (caca->color_bool == 1)
+	{
+		vars.color = caca->color_map[idx / 2];
+		vars.color2 = caca->color_map[idx2 / 2];
+	}
+	else 
+	{
+		vars.color = caca->color_map2[idx / 2];
+		vars.color2 = caca->color_map2[idx2 / 2];
+	}
 	vars.x0 = caca->map_screen[idx];
 	vars.y0 = caca->map_screen[idx + 1];
 	vars.x1 = caca->map_screen[idx2];
 	vars.y1 = caca->map_screen[idx2 + 1];
 	vars.dx = abs(vars.x1 - vars.x0);
 	vars.dy = abs(vars.y1 - vars.y0);
+	if (vars.color == 0xFFFFFFFF && caca->color_back == -1)
+		vars.color = 0x000000FF;
+	else if (vars.color == 0x000000FF && caca->color_back == 1)
+		vars.color = 0xFFFFFFFF;
+	if (vars.color2 == 0xFFFFFFFF && caca->color_back == -1)
+		vars.color2 = 0x000000FF;
+	else if (vars.color2 == 0x000000FF && caca->color_back == 1)
+		vars.color2 = 0xFFFFFFFF;
     if (vars.x0 < vars.x1)
 		vars.sx = 1;
 	else
@@ -566,21 +645,22 @@ void	algo_line(t_window_render *caca, int idx, int idx2, unsigned long color)
 		return ;
 	if ((vars.y0 < 0 || vars.y1 < 0) || (vars.y0 > HEIGHT || vars.y1 > HEIGHT))
 		return ;
+	step = 0;
+	if (vars.dx >= vars.dy)
+    	max_step = vars.dx;
+	else
+		max_step = vars.dy;
+	if (max_step == 0)
+		max_step = 1;
     while (1)
     {
-		if (vars.x0 >= 0 && vars.x0 < WIDTH && vars.y0 >= 0 && vars.y0 < HEIGHT)
-		{
-        	idx_pixel = vars.y0 * WIDTH + vars.x0;
-        	if (color == 0xFFFFFFFF && caca->color_back == -1)
-				caca->pixels[idx_pixel].rgba = 0x000000FF;
-			else if (color == 0x000000FF && caca->color_back == 1)
-				caca->pixels[idx_pixel].rgba = 0xFFFFFFFF;
-			else
-            	caca->pixels[idx_pixel].rgba = color;
-		}
+		t = (float)step / (float)max_step;
+		step++;
+        idx_pixel = vars.y0 * WIDTH + vars.x0;
+        caca->pixels[idx_pixel].rgba = lerp_color(vars.color, vars.color2, t);
 		if (vars.x0 == vars.x1 && vars.y0 == vars.y1)
         	break ;
-        vars.e2 = 2*vars.err;
+        vars.e2 = 2 * vars.err;
         if (vars.e2 > (int)-vars.dy)
         {
             vars.err = vars.err - vars.dy;
@@ -610,9 +690,9 @@ void	draw_vertical(t_window_render *caca)
 			idx  = (j * caca->x_max + i) * 2;
 			idx2 = (j * caca->x_max + (i + 1)) * 2;
 			if (caca->color_bool == 1)
-				algo_line(caca, idx, idx2, caca->color_map[j * caca->x_max + i]);
+				algo_line(caca, idx, idx2);
 			else
-				algo_line(caca, idx, idx2, 0x000000FF);
+				algo_line(caca, idx, idx2);
 			i ++;
 		}
 		j++;
@@ -635,9 +715,9 @@ void	draw_horizontal(t_window_render *caca)
 			idx  = (j * caca->x_max + i) * 2;
             idx2 = ((j + 1) * caca->x_max + i) * 2;
 			if (caca->color_bool == 1)
-				algo_line(caca, idx, idx2, caca->color_map[j * caca->x_max + i]);
+				algo_line(caca, idx, idx2);
 			else
-				algo_line(caca, idx, idx2, 0x000000FF);
+				algo_line(caca, idx, idx2);
 			i ++;
 		}
 		j++;
@@ -668,6 +748,7 @@ void	set_data(t_window_render *caca)
 	caca->zoom = 15.0f;
 	caca->angle_x = 0.0f;
 	caca->angle_y = 0.0f;
+	ft_memset(caca->key_table, 0, sizeof(caca->key_table));
 }
 
 void update(void* param)
@@ -721,7 +802,6 @@ void update(void* param)
 		color_back = 0xFFFFFFFF;
 	mlx_clear_window(caca->mlx, caca->win, (mlx_color){ .rgba = color_back });
 	caca->mvp = render_isometric(caca);
-	printf("%f : angle x               %f : angle y\n", caca->angle_x, caca->angle_y);
 	draw_every_point(caca);
 	draw_line(caca);
 	mlx_set_image_region(caca->mlx, caca->img, 0, 0, WIDTH, HEIGHT, caca->pixels);
@@ -734,7 +814,7 @@ int	main(int ac, char **av)
 	t_map_pars	map_pars;
 	t_window_render	caca;
 	mlx_window_create_info info;
-    info.title = "i love les femmes gechars";
+    info.title = "LE FDF DU PEUPLE";
     info.width = WIDTH;
     info.height = HEIGHT;
 	// int	i = 0;
