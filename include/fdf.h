@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 11:13:19 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/20 17:10:58 by gajanvie         ###   ########.fr       */
+/*   Updated: 2025/11/21 15:13:40 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,6 +84,7 @@ typedef struct s_window_render
 	int		*map;
 	unsigned int	*color_map;
 	unsigned int	*color_map2;
+	unsigned int	*color_map3;
 	int	x_max;
 	int	y_max;
 	float	y_axe;
@@ -98,6 +99,7 @@ typedef struct s_window_render
 	float		deph;
 	float	angle_x;
 	float	angle_y;
+	int		view_i;
 } t_window_render;
 
 typedef struct s_map_pars
