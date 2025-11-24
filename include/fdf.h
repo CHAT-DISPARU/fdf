@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 11:13:19 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/24 17:02:34 by gajanvie         ###   ########.fr       */
+/*   Updated: 2025/11/24 19:33:47 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,10 +51,7 @@ typedef struct s_screen_coords
 	float	x;
 	float	y;
 	float	z;
-	float	norm_x;
-	float	norm_y;
 	float	theta;
-	float	phi;
 }                 t_screen_coords;
 
 typedef struct	s_mat4_iso
@@ -149,6 +146,7 @@ typedef struct s_window_render
 	int		size_points;
 	int		speed;
 	int		help;
+	float	height_scale;
 } t_window_render;
 
 typedef struct s_map_pars
