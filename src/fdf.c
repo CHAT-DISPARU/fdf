@@ -6,945 +6,143 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 10:47:21 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/22 18:12:03 by gajanvie         ###   ########.fr       */
+/*   Updated: 2025/11/24 16:18:46 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <fdf.h>
 
-
-void	fill_str(char **tab, char *new, char ***result)
+void	keys_pressed3(t_window_render *data)
 {
-	int	j;
-
-	j = 0;
-	while (tab[j])
+	if (data->key_table[30] == 1 && data->old_key_table[30] != 1 && data->size_points > 0)
+		data->size_points -= 1;
+	if (data->key_table[31] == 1 && data->old_key_table[31] != 1 && data->size_points < 12)
+		data->size_points += 1;
+	if (data->key_table[6] == 1 && data->old_key_table[6] != 1)
 	{
-		(*result)[j] = ft_strdup(tab[j]);
-		j++;
-	}
-	(*result)[j++] = ft_strdup(new);
-	(*result)[j] = NULL;
-}
-
-
-int	ft_tabstrlen(char **c)
-{
-	int	i;
-
-	i = 0;
-	while (c[i])
-		i++;
-	return (i);
-}
-
-char	**ft_tabstrdup(char **src)
-{
-	char	**cpy_src;
-	int		i;
-
-	i = 0;
-	while (src[i])
-		i ++;
-	cpy_src = (char **)malloc((i + 1) * sizeof(char *));
-	i = 0;
-	if (cpy_src == NULL)
-		return (NULL);
-	while (src[i])
-	{
-		cpy_src[i] = ft_strdup(src[i]);
-		i ++;
-	}
-	cpy_src[i] = NULL;
-	return (cpy_src);
-}
-
-char	**ft_realloc_tab(char **tab, char *new)
-{
-	char	**result;
-	int		i;
-
-	if (!tab && !new)
-		return (NULL);
-	if (!tab)
-	{
-		result = malloc(sizeof(char *) * 2);
-		result[0] = ft_strdup(new);
-		result[1] = NULL;
-		return (result);
-	}
-	i = ft_tabstrlen(tab);
-	result = (char **)malloc(sizeof(char *) * (i + 2));
-	if (!result)
-		return (NULL);
-	fill_str(tab, new, &result);
-	if (tab)
-		free_all(tab);
-	//free(new);
-	return (result);
-}
-
-void	mess_error(char *msg, int exit_code)
-{
-	perror(msg);
-	exit(exit_code);
-}
-
-int	map_valid(char	**all_line)
-{
-	char	**line_split;
-	int		i;
-	int		j;
-	int		k;
-	
-	i = 0;
-	while (all_line[i])
-	{
-		line_split = ft_split(all_line[i]);
-		if (!line_split)
-		{
-			free_all(all_line);
-			mess_error("malloc parsing:", EXIT_FAILURE);
-		}
-		k = 0;
-		while (line_split[k])
-		{
-			j = 0;
-			if (line_split[k][j] == '-')
-				j++;
-			while (line_split[k][j] >= '0' && line_split[k][j] <= '9')
-				j++;
-			if (line_split[k][j])
-			{
-				free_all(line_split);
-				return (1);
-			}
-			k++;
-		}
-		free_all(line_split);
-		i++;	
-	}
-	return (0);
-}
-
-int	len_valid(t_map_pars *map_pars, t_window_render *caca)
-{
-	char	**line_split;
-	int		len;
-	int		i;
-
-	i = 0;
-	if (!map_pars->all_line)
-		return (0);
-	line_split = ft_split(map_pars->all_line[i]);
-	if (!line_split)
-		mess_error("malloc parsing:", EXIT_FAILURE);
-	len = ft_tabstrlen(line_split);
-	free_all(line_split);
-	i = 1;
-	while (map_pars->all_line[i])
-	{
-		line_split = ft_split(map_pars->all_line[i]);
-		if (!line_split)
-			mess_error("malloc parsing:", EXIT_FAILURE);
-		if (ft_tabstrlen(line_split) != len)
-		{
-			free_all(line_split);
-			return (0);
-		}
-		free_all(line_split);
-		i++;
-	}
-	caca->y_max = i;
-	return (len);
-}
-
-void cleanup_map(t_window_render *caca)
-{
-    free(caca->map);
-    free(caca->color_map);
-	free(caca->color_map2);
-    caca->map = NULL;
-    caca->color_map = NULL;
-	caca->color_map2 = NULL;
-}
-
-unsigned int byteswap32(unsigned int t)
-{
-	return (t >> 24 | ((t >> 8) & 0xFF00) | ((t >> 8) & 0xFF0000) | t << 24);
-}
-
-void	read_in_urand(char	*r, char *g, char *b, int fd)
-{
-	char	buffer[3];
-
-	read(fd, buffer, 3);
-	*r = buffer[0];
-	*g = buffer[1];
-	*b = buffer[2];
-	if (*r < 0)
-		*r = -(*r);
-	if (*g < 0)
-		*g = -(*g);
-	if (*b < 0)
-		*b = -(*b);
-}
-
-unsigned int	rand_color(void)
-{
-	char	r;
-    char	g;
-    char	b;
-	int		fd;
-
-	fd = open ("/dev/urandom", O_RDONLY);
-	if (fd < 0)
-		return (0xffffffff);
-	read_in_urand(&r, &g, &b, fd);
-	close (fd);
-	return ((r << 24) | (g << 16) | (b << 8) | 0xFF);
-}
-
-unsigned int	find_color(int z)
-{
-	if (z == 0)
-		return (0x0080ffff);
-	if (z < 0 && z > -25)
-		return (0x0f0065ff);
-	if (z <= -25 && z > -50)
-		return (0x00117aff);
-	if (z <= -50 && z > -200)
-		return (0x00074aff);
-	if (z <= -200 && z > -400)
-		return (0x410043ff);
-	if (z <= -400)
-		return (0x002836ff);
-	if (z > 0 && z < 5)
-		return (0xebc300ff);
-	if (z >= 5 && z < 15)
-		return (0x7d2c00ff);
-	if (z >= 15 && z < 25)
-		return (0x725a00ff);
-	if (z >= 25 && z < 35)
-		return (0x32d300ff);
-	if (z >= 35 && z < 65)
-		return (0x005322ff);
-	if (z >= 65 && z < 80)
-		return (0x332900ff);
-	if (z >= 80 && z < 90)
-		return (0xe3ff3aff);
-	if (z >= 90 && z < 115)
-		return (0x6e6e6eff);
-	if (z >= 115 && z < 135)
-		return (0xb9e1ffff);
-	return (0xffffffff);
-}
-
-void	convert_int(t_map_pars *map_pars, t_window_render *caca)
-{	
-	char	**line_split;
-	int		i;
-	int		k;
-	int		j;
-	int		n;
-	char	*coma;
-	char	*color_str;
-	
-	i = 0;
-	j = 0;
-	n = 0;
-	caca->map = malloc (sizeof(int) * caca->y_max * caca->x_max * 3);
-	caca->color_map = malloc (sizeof(unsigned int) * caca->y_max * caca->x_max);
-	caca->color_map2 = malloc (sizeof(unsigned int) * caca->y_max * caca->x_max);
-	caca->color_map3 = malloc (sizeof(unsigned int) * caca->y_max * caca->x_max);
-	if (!caca->map || !caca->color_map || !caca->color_map2 || !caca->color_map3)
-	{
-		if (caca->map)
-			free(caca->map);
-		if (caca->color_map)
-			free(caca->color_map);
-		if (caca->color_map2)
-			free(caca->color_map2);
-		if (caca->color_map3)
-			free(caca->color_map3);
-        mess_error("malloc map", 1);
-	}
-	while (map_pars->all_line[i])
-	{
-		k = 0;
-		line_split = ft_split(map_pars->all_line[i]);
-		if (!line_split)
-		{
-			free_all(map_pars->all_line);
-			cleanup_map(caca);
-			mess_error("malloc parsing:", EXIT_FAILURE);
-		}
-		while (line_split[k])
-		{
-			coma = ft_strchr(line_split[k], ',');
-			if (coma)
-			{
-				*coma = '\0';
-				color_str = coma + 1;
-				if (color_str[0] == '0' && (color_str[1] == 'x' || color_str[1] == 'X'))
-                    color_str += 2;
-				if (*color_str == '\0')
-					caca->color_map[n] = 0xFFFFFFFF;
-				else
-				{
-					if (*(color_str - 1) == 'x')
-						caca->color_map[n] = ft_atol_base(color_str, "0123456789abcdef");
-					else
-						caca->color_map[n] = ft_atol_base(color_str, "0123456789ABCDEF");
-					caca->color_map[n] = caca->color_map[n] << 8 | 0xFF;
-				}
-			}
-			else
-				caca->color_map[n] = 0xFFFFFFFF;
-			caca->map[j] = k;
-			caca->map[j + 1] = i;
-			caca->map[j + 2] = ft_atoi(line_split[k]);
-			caca->color_map2[n] = find_color(caca->map[j + 2]);
-			caca->color_map3[n] = rand_color();
-			n++;
-			j += 3;
-			k++;
-		}
-		free_all(line_split);
-		i++;	
-	}
-}
-
-void	parse_map(char *file, t_map_pars *map_pars, t_window_render *caca)
-{
-	int	fd;
-	char *line;
-
-	map_pars->all_line = NULL;
-	fd = open(file, O_RDONLY);
-	if (fd == -1)
-		return ;
-	line = get_next_line(fd);
-	while (line)
-	{
-		map_pars->all_line = ft_realloc_tab(map_pars->all_line, line);
-		free(line);
-		line = get_next_line(fd);
-	}
-	caca->x_max = len_valid(map_pars, caca);
-	if (caca->x_max > 0)
-		convert_int(map_pars, caca);
-	else 
-		caca->map = NULL;
-	free_all(map_pars->all_line);
-}
-
-void	free_all_int_tabs(t_window_render *caca)
-{
-	free(caca->map_screen);
-	free(caca->map);
-	free(caca->color_map);
-	free(caca->color_map2);
-}
-
-void mat4_initial(t_mat4 *mat)
-{
-    int	i;
-    int	j;
-
-    i = 0;
-    while (i < 4)
-	{
-        j = 0;
-        while (j < 4)
-		{
-            if (i == j)
-                mat->m[i][j] = 1.0f;
-            else
-                mat->m[i][j] = 0.0f;
-            j++;
-        }
-        i++;
-    }
-}
-
-t_mat4 mat4_multiply(t_mat4 *a, t_mat4 *b)
-{
-    t_mat4	tmp;
-    int		i;
-    int		j;
-    int		k;
-
-    i = 0;
-    while (i < 4)
-	{
-        j = 0;
-        while (j < 4)
-		{
-            tmp.m[i][j] = 0.0f;
-            k = 0;
-            while (k < 4)
-			{
-                tmp.m[i][j] += a->m[i][k] * b->m[k][j];
-                k++;
-            }
-            j++;
-        }
-        i++;
-    }
-    return (tmp);
-}
-
-void create_isometric_model(t_mat4 *model)
-{
-	t_mat4	rx;
-    t_mat4	ry;
-    float	ax;
-    float	ay;
-    float	cx;
-    float	sx;
-    float	cy;
-    float	sy;
-
-	ax = -35.264f * M_PI / 180.0f;// arctan(1/√2) = angle magique 
-	ay = -45.0f * M_PI / 180.0f;
-	cx = cosf(ax);
-	sx = sinf(ax);
-	cy = cosf(ay);
-	sy = sinf(ay);
-    mat4_initial(&rx);
-    rx.m[1][1] = cx;
-    rx.m[1][2] = sx;
-    rx.m[2][1] = -sx;
-    rx.m[2][2] = cx;
-	//[ 1    0    0    0 ]
-	//[ 0   cx  sx   0 ] 
-	//[ 0   -sx   cx   0 ]
-	//[ 0    0    0    1 ]
-    mat4_initial(&ry);
-    ry.m[0][0] = cy;
-    ry.m[0][2] = -sy;
-    ry.m[2][0] = sy;
-    ry.m[2][2] = cy;
-	//[ cy   0   -sy   0 ]
-	//[  0   1    0   0 ]
-		//[sy   0   cy   0 ]
-	//[  0   0    0   1 ]
-    *model = mat4_multiply(&ry, &rx);
-}
-
-void create_parallel_model(t_mat4 *model)
-{
-	mat4_initial(model);
-}
-
-void create_isometric_view(t_mat4 *view)
-{
-	mat4_initial(view);
-
-	//view->m[3][0] = -WIDTH / 2.0f;
-	//view->m[3][1] = -HEIGHT / 2.0f;
-	view->m[3][2] = 0.0f;
-}
-
-void create_parallel_view(t_mat4 *view)
-{
-	mat4_initial(view);
-
-	view->m[3][0] = -WIDTH / 0.0f;
-	view->m[3][1] = -HEIGHT / 0.0f;
-	view->m[3][2] = 0.0f;
-}
-
-void create_ortho_projection(t_mat4 *proj, t_window_render *caca)
-{
-	int	x;
-	int	y;
-
-    mat4_initial(proj);
-	mlx_mouse_get_pos(caca->mlx, &x, &y);
-    proj->m[0][0] = caca->zoom;
-    proj->m[1][1] = -caca->zoom;
-	proj->m[2][2] = caca->zoom;
-    //proj->m[3][0] = WIDTH / 2;
-	//proj->m[3][1] = HEIGHT / 2;
-}
-
-void	get_screen_pos(t_vec3 p, int *sx, int *sy, t_mat4 *mvp, t_window_render *caca)
-{
-    float tx;
-    float ty;
-
-    tx = p.x * mvp->m[0][0] + p.y * mvp->m[1][0] + p.z * mvp->m[2][0] + mvp->m[3][0];
-    ty = p.x * mvp->m[0][1] + p.y * mvp->m[1][1] + p.z * mvp->m[2][1] + mvp->m[3][1];
-    *sx = (int)(tx) + caca->y_axe;
-    *sy = (int)(ty) + caca->x_axe;
-}
-
-void draw_point(int cx, int cy, unsigned int color, t_window_render *caca)
-{
-    int	size;
-    int	x;
-	int	y;
-	int	idx;
-
-	size = 0;
-    y = cy - size;
-    while (y <= cy + size)
-	{
-        x = cx - size;
-        while (x <= cx + size)
-		{
-            if (x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT)
-			{
-                idx = y * WIDTH + x;
-				if (color == 0xFFFFFFFF && caca->color_back == -1)
-					caca->pixels[idx].rgba = 0x000000FF;
-				else if (color == 0x000000FF && caca->color_back == 1)
-					caca->pixels[idx].rgba = 0xFFFFFFFF;
-				else
-            		caca->pixels[idx].rgba = color;
-            }
-            x++;
-        }
-        y++;
-    }
-}
-
-void mat4_rotate_y(t_mat4 *m, float angle)
-{
-    float	c;
-    float	s;
-
-	s = sinf(angle);
-	c = cosf(angle);
-    mat4_initial(m);
-    m->m[0][0] =  c;
-	m->m[0][2] = s;
-    m->m[2][0] = -s;
-	m->m[2][2] = c;
-	m->m[3][0] =  WIDTH / 2;
-	m->m[3][1] =  HEIGHT / 2;
-}
-
-void mat4_rotate_x(t_mat4 *m, float angle)
-{
-    float	c;
-	float	s;
-
-	c = cosf(angle);
-	s = sinf(angle);
-    mat4_initial(m);
-    m->m[1][1] =  c;
-	m->m[1][2] = -s;
-    m->m[2][1] =  s;
-	m->m[2][2] =  c;
-	//m->m[3][0] =  caca->map_screen[caca->x_max * caca->y_max / 2] - caca->x_axe;
-	//m->m[3][1] =  caca->map_screen[(caca->x_max * caca->y_max / 2) + 1] -  caca->y_axe;
-}
-
-t_mat4	render_parallel(t_window_render *caca)
-{
-    t_mat4	model;
-	t_mat4	view;
-	t_mat4	proj;
-	t_mat4	mvp;
-	t_mat4	mv;
-	t_mat4	rotate;
-	t_mat4	rotate_x;
-	t_mat4	rotate_y;
-
-    create_parallel_model(&model);
-    create_parallel_view(&view);
-    create_ortho_projection(&proj, caca);
-	mat4_rotate_x(&rotate_x, caca->angle_x);
-	mat4_rotate_y(&rotate_y, caca->angle_y);
-	rotate = mat4_multiply(&rotate_x, &rotate_y);
-	model = mat4_multiply(&rotate, &model);
-    mv = mat4_multiply(&view, &model);
-    mvp = mat4_multiply(&proj, &mv);
-	return (mvp);
-}
-
-t_mat4	render_isometric(t_window_render *caca)
-{
-    t_mat4	model;
-	t_mat4	view;
-	t_mat4	proj;
-	t_mat4	mvp;
-	t_mat4	mv;
-	t_mat4	rotate;
-	t_mat4	rotate_x;
-	t_mat4	rotate_y;
-
-
-    create_isometric_model(&model);
-    create_isometric_view(&view);
-    create_ortho_projection(&proj, caca);
-	mat4_rotate_x(&rotate_x, caca->angle_x);
-	mat4_rotate_y(&rotate_y, caca->angle_y);
-	rotate = mat4_multiply(&rotate_x, &rotate_y);
-	model = mat4_multiply(&rotate, &model);
-    mv = mat4_multiply(&view, &model);
-    mvp = mat4_multiply(&proj, &mv);
-	return (mvp);
-}
-
-void	draw_every_point(t_window_render *caca)
-{
-	int		i;
-    int		sx;
-	int		sy;
-	t_vec3	p;
-
-	i = 0;
-    while (i < WIDTH * HEIGHT)
-	{
-		if (caca->color_back == 1)
-        	caca->pixels[i].rgba = 0x000000FF;
+		if (data->color_bool == 2)
+			data->color_bool = 0;
 		else
-			caca->pixels[i].rgba = 0xFFFFFFFF;
-		i++;
+			data->color_bool += 1;
 	}
-	i = 0;
-    while (i < caca->x_max * caca->y_max * 3)
+}
+
+void	keys_pressed2(t_window_render *data)
+{
+	if (data->key_table[18] == 1 && data->old_key_table[18] != 1)
+		data->sphere = -data->sphere;
+	if (data->key_table[87] == 1 && data->deph < 30)
+		data->deph += 0.005 * data->speed;
+	if (data->key_table[86] == 1 && data->deph > 0.01)
+		data->deph -= 0.005 * data->speed;
+	if (data->key_table[44] == 1 && data->old_key_table[44] != 1)
+		data->color_back = -data->color_back;
+	if (data->key_table[21] == 1 && data->old_key_table[21] != 1)
+		set_data(data);
+	if (data->key_table[15] == 1 && data->old_key_table[15] != 1)
 	{
-        p.x = caca->map[i];
-        p.y = caca->map[i + 2] * caca->deph;
-        p.z =  caca->map[i + 1];
-		get_screen_pos(p, &sx, &sy, &caca->mvp, caca);
-		if (sx >= 0 && sx < WIDTH && sy >= 0 && sy < HEIGHT)
-		{
-			if (caca->color_bool == 0)
-				draw_point(sx, sy, caca->color_map[i/3], caca);
-			else if (caca->color_bool == 1)
-				draw_point(sx, sy,  caca->color_map2[i/3], caca);
-			else
-				draw_point(sx, sy,  caca->color_map3[i/3], caca);
-			caca->map_screen[i/3 * 2] = sx;
-			caca->map_screen[(i/3 * 2) + 1] = sy;
-		}
-		else 
-		{
-			caca->map_screen[i/3 * 2] = -10;
-			caca->map_screen[(i/3 * 2) + 1] = -10;
-		}
-		i += 3;
+		if (data->line_show == 3)
+			data->line_show = 0;
+		else
+			data->line_show += 1;
 	}
-}
-
-void key_hook(int key, void* param)
-{
-	if (key == 41)
-		mlx_loop_end((mlx_context)param);
-}
-
-void key_zoom(int button, void* param)
-{
-	if (button == 1)
-		*(float *)param += 0.5f;
-	if (button == 2 && *(float *)param > 0)
-		*(float *)param -= 0.5f;
-}
-
-void key_up(int key, void* param)
-{
-	t_window_render *caca;
-
-	caca = (t_window_render*)param;
-	caca->key_table[key] = 0;
-}
-
-void key_down(int key, void* param)
-{
-	t_window_render *caca;
-
-	caca = (t_window_render*)param;
-	caca->key_table[key] = 1;
-}
-
-void window_hook(int event, void* param)
-{
-    if(event == 0)
-        mlx_loop_end((mlx_context)param);
-}
-
-unsigned int    lerp_color(unsigned int c1, unsigned int c2, float t)
-{
-	t_lerp_color lerp;
-
-	lerp.r1 = (c1 >> 24) & 0xFF;
-	lerp.g1 = (c1 >> 16) & 0xFF;
-	lerp.b1 = (c1 >> 8) & 0xFF;
-	lerp.r2 = (c2 >> 24) & 0xFF;
-	lerp.g2 = (c2 >> 16) & 0xFF;
-	lerp.b2 = (c2 >> 8) & 0xFF;
-	lerp.r = (unsigned char)(lerp.r1 + t * (lerp.r2 - lerp.r1));
-	lerp.g = (unsigned char)(lerp.g1 + t * (lerp.g2 - lerp.g1));
-	lerp.b = (unsigned char)(lerp.b1 + t * (lerp.b2 - lerp.b1));
-    return ((lerp.r << 24) | (lerp.g << 16) | (lerp.b << 8) | 0xFF);
-}
-
-void	algo_line(t_window_render *caca, int idx, int idx2)
-{
-    t_line_algo		vars;
-	int				idx_pixel;
-	float			t;
-	int				max_step;
-	int				step;
-
-	if (caca->color_bool == 0)
+	if (data->key_table[12] == 1 && data->old_key_table[12] != 1)
 	{
-		vars.color = caca->color_map[idx / 2];
-		vars.color2 = caca->color_map[idx2 / 2];
+		data->view_i = -data->view_i;
+		set_data(data);
 	}
-	else if (caca->color_bool == 1)
-	{
-		vars.color = caca->color_map2[idx / 2];
-		vars.color2 = caca->color_map2[idx2 / 2];
-	}
-	else 
-	{
-		vars.color = caca->color_map3[idx / 2];
-		vars.color2 = caca->color_map3[idx2 / 2];
-	}
-	vars.x0 = caca->map_screen[idx];
-	vars.y0 = caca->map_screen[idx + 1];
-	vars.x1 = caca->map_screen[idx2];
-	vars.y1 = caca->map_screen[idx2 + 1];
-	vars.dx = abs(vars.x1 - vars.x0);
-	vars.dy = abs(vars.y1 - vars.y0);
-	if (vars.color == 0xFFFFFFFF && caca->color_back == -1)
-		vars.color = 0x000000FF;
-	else if (vars.color == 0x000000FF && caca->color_back == 1)
-		vars.color = 0xFFFFFFFF;
-	if (vars.color2 == 0xFFFFFFFF && caca->color_back == -1)
-		vars.color2 = 0x000000FF;
-	else if (vars.color2 == 0x000000FF && caca->color_back == 1)
-		vars.color2 = 0xFFFFFFFF;
-    if (vars.x0 < vars.x1)
-		vars.sx = 1;
+}
+
+void	keys_pressed(t_window_render *data)
+{
+	if (data->key_table[225] == 1)
+		data->speed = 5;
 	else
-		vars.sx = -1;
-    if (vars.y0 < vars.y1)
-		vars.sy = 1;
-	else 
-		vars.sy = -1;
-	vars.err = vars.dx - vars.dy;
-	if ((vars.x0 < 0 || vars.x1 < 0) || (vars.x0 > WIDTH || vars.x1 > WIDTH))
-		return ;
-	if ((vars.y0 < 0 || vars.y1 < 0) || (vars.y0 > HEIGHT || vars.y1 > HEIGHT))
-		return ;
-	step = 0;
-	if (vars.dx >= vars.dy)
-    	max_step = vars.dx;
-	else
-		max_step = vars.dy;
-	if (max_step == 0)
-		max_step = 1;
-    while (1)
-    {
-		t = (float)step / (float)max_step;
-		step++;
-        idx_pixel = vars.y0 * WIDTH + vars.x0;
-        caca->pixels[idx_pixel].rgba = lerp_color(vars.color, vars.color2, t);
-		if (vars.x0 == vars.x1 && vars.y0 == vars.y1)
-        	break ;
-        vars.e2 = 2 * vars.err;
-        if (vars.e2 > (int)-vars.dy)
-        {
-            vars.err = vars.err - vars.dy;
-            vars.x0 += vars.sx;
-        }
-        if (vars.e2 < (int)vars.dx) 
-        {
-            vars.err = vars.err + vars.dx;
-            vars.y0 += vars.sy;
-        }
-	}
-}
-
-void	draw_vertical(t_window_render *caca)
-{
-	int	i;
-	int	j;
-	int	idx;
-	int idx2;
-
-	j = 0;
-	while (j < caca->y_max)
-	{
-		i = 0;
-		while (i < caca->x_max - 1)
-		{
-			idx  = (j * caca->x_max + i) * 2;
-			idx2 = (j * caca->x_max + (i + 1)) * 2;
-			algo_line(caca, idx, idx2);
-			i ++;
-		}
-		j++;
-	}
-}
-
-void	draw_horizontal(t_window_render *caca)
-{
-	int	i;
-	int	j;
-	int	idx;
-	int idx2;
-
-	j = 0;
-	while (j < caca->y_max - 1)
-	{
-		i = 0;
-		while (i < caca->x_max)
-		{
-			idx  = (j * caca->x_max + i) * 2;
-            idx2 = ((j + 1) * caca->x_max + i) * 2;
-			algo_line(caca, idx, idx2);
-			i ++;
-		}
-		j++;
-	}
-}
-
-void	draw_line(t_window_render *caca)
-{
-	if (caca->line_show == 2)
-		draw_vertical(caca);
-	if (caca->line_show == 1)
-		draw_horizontal(caca);
-	if (caca->line_show == 3)
-	{
-		draw_vertical(caca);
-		draw_horizontal(caca);
-	} 
-}
-
-void	set_data(t_window_render *caca)
-{
-	caca->x_axe = 0;
-	caca->y_axe = 0;
-	caca->color_bool = 0;
-	caca->color_back = 1;
-	caca->line_show = 3;
-	caca->deph = 0.1;
-	caca->zoom = 15.0f;
-	caca->angle_x = 0.0f;
-	caca->angle_y = 0.0f;
-	ft_memset(caca->key_table, 0, sizeof(caca->key_table));
+		data->speed = 1;
+	if (data->key_table[7] == 1)
+		data->y_axe += 2.0f * data->speed;
+	if (data->key_table[4] == 1)
+		data->y_axe -= 2.0f * data->speed;
+	if (data->key_table[26] == 1)
+		data->x_axe += 2.0f * data->speed;
+	if (data->key_table[22] == 1)
+		data->x_axe -= 2.0f * data->speed;
+	if (data->key_table[80] == 1)
+		data->angle_y += 0.014f * data->speed;
+	if (data->key_table[79] == 1)
+		data->angle_y -= 0.014f * data->speed;
+	if (data->key_table[82] == 1)
+		data->angle_x += 0.014f * data->speed;
+	if (data->key_table[81] == 1)
+		data->angle_x -= 0.014f * data->speed;
+	if (data->key_table[47] == 1)
+		data->angle_z += 0.014f * data->speed;
 }
 
 void update(void* param)
 {
-    t_window_render *caca;
+    t_window_render *data;
 	unsigned int	color_back;
 
-	caca = (t_window_render*)param;
-	printf ("%f %f\n", caca->x_axe, caca->y_axe);
-	if (caca->key_table[7] == 1)
-		caca->y_axe += 2.0f;
-	if (caca->key_table[4] == 1)
-		caca->y_axe -= 2.0f;
-	if (caca->key_table[26] == 1)
-		caca->x_axe += 2.0f;
-	if (caca->key_table[22] == 1)
-		caca->x_axe -= 2.0f;
-	if (caca->key_table[80] == 1)
-		caca->angle_y += 0.014f;
-	if (caca->key_table[79] == 1)
-		caca->angle_y -= 0.014f;
-	if (caca->key_table[82] == 1)
-		caca->angle_x += 0.014f;
-	if (caca->key_table[81] == 1)
-		caca->angle_x -= 0.014f;
-	if (caca->key_table[6] == 1 && caca->old_key_table[6] != 1)
-	{
-		if (caca->color_bool == 2)
-			caca->color_bool = 0;
-		else
-			caca->color_bool += 1;
-	}
-	if (caca->key_table[87] == 1 && caca->deph < 3)
-		caca->deph += 0.005;
-	if (caca->key_table[86] == 1 && caca->deph > 0.01)
-		caca->deph -= 0.005;
-	if (caca->key_table[44] == 1 && caca->old_key_table[44] != 1)
-		caca->color_back = -caca->color_back;
-	if (caca->key_table[21] == 1 && caca->old_key_table[21] != 1)
-		set_data(caca);
-	if (caca->key_table[15] == 1 && caca->old_key_table[15] != 1)
-	{
-		if (caca->line_show == 3)
-			caca->line_show = 0;
-		else
-			caca->line_show += 1;
-	}
-	if (caca->key_table[12] == 1 && caca->old_key_table[12] != 1)
-	{
-		caca->view_i = -caca->view_i;
-		set_data(caca);
-	}
-	if (caca->color_back == 1)
+	data = (t_window_render*)param;
+	keys_pressed(data);
+	keys_pressed2(data);
+	keys_pressed3(data);
+	if (data->key_table[48] == 1)
+		data->angle_z -= 0.014f;
+	if (data->color_back == 1)
 		color_back = 0x000000FF;
 	else
 		color_back = 0xFFFFFFFF;
-	if (caca->view_i == 1)
-		caca->mvp = render_isometric(caca);
+	if (data->view_i == 1)
+		data->mvp = render_isometric(data);
 	else
-		caca->mvp = render_parallel(caca);
-	mlx_clear_window(caca->mlx, caca->win, (mlx_color){ .rgba = color_back });
-	draw_every_point(caca);
-	draw_line(caca);
-	mlx_set_image_region(caca->mlx, caca->img, 0, 0, WIDTH, HEIGHT, caca->pixels);
-	mlx_put_image_to_window(caca->mlx, caca->win, caca->img, 0, 0);
-	ft_memcpy(caca->old_key_table, caca->key_table, sizeof(caca->key_table));
+		data->mvp = render_parallel(data);
+	mlx_clear_window(data->mlx, data->win, (mlx_color){ .rgba = color_back });
+	draw_every_point(data);
+	draw_line(data);
+	mlx_set_image_region(data->mlx, data->img, 0, 0, WIDTH, HEIGHT, data->pixels);
+	mlx_put_image_to_window(data->mlx, data->win, data->img, 0, 0);
+	ft_memcpy(data->old_key_table, data->key_table, sizeof(data->key_table));
+}
+
+void	call_mlx_events(t_window_render *data)
+{
+	mlx_set_fps_goal(data->mlx, 60);
+	mlx_on_event(data->mlx, data->win, MLX_KEYDOWN, key_hook, data->mlx);
+	mlx_on_event(data->mlx, data->win, MLX_KEYDOWN, key_down, data);
+	mlx_on_event(data->mlx, data->win, MLX_KEYUP, key_up, data);
+	mlx_on_event(data->mlx, data->win, MLX_WINDOW_EVENT, window_hook, data->mlx);
+	mlx_on_event(data->mlx, data->win, MLX_MOUSEWHEEL, key_zoom, data);
+	mlx_add_loop_hook(data->mlx, update, data);
+    mlx_loop(data->mlx);
+	clean_map_mlx(data);
 }
 
 int	main(int ac, char **av)
 {
-	t_map_pars	map_pars;
-	t_window_render	caca;
-	mlx_window_create_info info;
-    info.title = "VIVE LES LATINAS";
-    info.width = WIDTH;
-    info.height = HEIGHT;
+	t_map_pars				map_pars;
+	t_window_render			data;
+	mlx_window_create_info	info;
+
 	if (ac != 2)
 	{
 		ft_printf("./fdf <map>");
 		return (EXIT_FAILURE);
 	}
-	parse_map(av[1], &map_pars, &caca);
-	if (!caca.map)
+	if (parse_map(av[1], &map_pars, &data))
 	{
-		ft_printf("parsing error from: %s\n", av[1]);
+		ft_printf("Error from: %s\n", av[1]);
 		return (EXIT_FAILURE);	
 	}
-	caca.mlx = mlx_init();
-    caca.win = mlx_new_window(caca.mlx, &info);
-    caca.img = mlx_new_image(caca.mlx, WIDTH, HEIGHT);
-	caca.view_i = 1;
-	set_data(&caca);
-	caca.map_screen = malloc(sizeof(int) * caca.x_max * caca.y_max * 2);
-	if (!caca.map_screen)
+	create_window(&data, &info);
+	set_data(&data);
+	data.map_screen = malloc(sizeof(int) * data.x_max * data.y_max * 2);
+	if (!data.map_screen)
 	{
-		free_all_int_tabs(&caca);
-		mlx_destroy_image(caca.mlx, caca.img);
-		mlx_destroy_window(caca.mlx, caca.win);
-    	mlx_destroy_context(caca.mlx);
+		clean_map_mlx(&data);
 		return (0);
 	}
-	mlx_set_fps_goal(caca.mlx, 60);
-	mlx_on_event(caca.mlx, caca.win, MLX_KEYDOWN, key_hook, caca.mlx);
-	mlx_on_event(caca.mlx, caca.win, MLX_KEYDOWN, key_down, &caca);
-	mlx_on_event(caca.mlx, caca.win, MLX_KEYUP, key_up, &caca);
-	mlx_on_event(caca.mlx, caca.win, MLX_WINDOW_EVENT, window_hook, caca.mlx);
-	mlx_on_event(caca.mlx, caca.win, MLX_MOUSEWHEEL, key_zoom, &caca.zoom);
-	mlx_add_loop_hook(caca.mlx, update, &caca);
-    mlx_loop(caca.mlx);
-	free_all_int_tabs(&caca);
-	mlx_destroy_image(caca.mlx, caca.img);
-	mlx_destroy_window(caca.mlx, caca.win);
-    mlx_destroy_context(caca.mlx);
+	call_mlx_events(&data);
     return (0);
 }

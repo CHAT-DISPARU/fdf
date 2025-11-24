@@ -1,7 +1,7 @@
 import os
 from PIL import Image
 
-var = "meuf_du_16"
+var = "barry"
 
 os.makedirs("/home/gajanvie/tronc_commun/cercle_2/fdf/maps/maps_python", exist_ok=True)
 img = Image.open("/home/gajanvie/tronc_commun/cercle_2/fdf/maps/img/" + var + ".jpg").convert("RGB")

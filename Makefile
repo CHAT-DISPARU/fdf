@@ -6,7 +6,7 @@
 #    By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/11/13 12:35:12 by gajanvie          #+#    #+#              #
-#    Updated: 2025/11/16 17:55:51 by gajanvie         ###   ########.fr        #
+#    Updated: 2025/11/24 15:01:32 by gajanvie         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -22,7 +22,24 @@ BLUE=\033[0;34m
 PURPLE=\033[0;35m
 NC=\033[0m
 
-SRCS = $(SRCD)fdf.c
+SRCS = $(SRCD)fdf.c \
+	$(SRCD)algo_line.c \
+	$(SRCD)check_map.c \
+	$(SRCD)clean_map.c \
+	$(SRCD)draw_lines.c \
+	$(SRCD)draw_points.c \
+	$(SRCD)events_funcs.c \
+	$(SRCD)find_color.c \
+	$(SRCD)matrices_iso.c \
+	$(SRCD)matrices_parallel.c \
+	$(SRCD)matrices_rotates.c \
+	$(SRCD)matrices_utils.c \
+	$(SRCD)pars.c \
+	$(SRCD)pars_utils.c \
+	$(SRCD)rand_colors.c \
+	$(SRCD)set_data.c \
+	$(SRCD)lerp_colors.c
+
 
 OBJS = $(SRCS:$(SRCD)%.c=$(OBJDIR)%.o)
 
