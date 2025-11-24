@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/24 12:15:59 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/24 15:45:35 by gajanvie         ###   ########.fr       */
+/*   Updated: 2025/11/24 17:38:45 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,13 +69,13 @@ void	get_screen_pos(t_vec3 p, int *sx, int *sy, t_window_render *data)
 	values.z = p.z;
 	if (data->sphere == 1)
 	{
-		values.norm_x = (values.x - (data->x_max - 1) * 0.5f) / data->sphere_radius;
-        values.norm_y = (values.y - (data->y_max - 1) * 0.5f) / data->sphere_radius;
-        values.theta = values.norm_x * M_PI;
-        values.phi = values.norm_y * M_PI;
-        values.x = data->sphere_radius * sinf(values.phi) * cosf(values.theta);
-        values.y = data->sphere_radius * sinf(values.phi) * sinf(values.theta);
-        values.z = data->sphere_radius * cosf(values.phi);
+		values.norm_x = p.x / data->x_max;
+        values.norm_y = p.y / data->y_max;
+        values.theta = values.norm_x * M_PI * 2.0f;
+        values.phi = values.norm_y * M_PI - M_PI / 2;
+        values.x = data->sphere_radius * cosf(values.phi) * cosf(values.theta);
+        values.y = data->sphere_radius * cosf(values.phi) * sinf(values.theta);
+        values.z = data->sphere_radius * sinf(values.phi);
     }
     values.tx = values.x * data->mvp.m[0][0] + values.y * data->mvp.m[1][0] + values.z * data->mvp.m[2][0] + data->mvp.m[3][0];
     values.ty = values.x * data->mvp.m[0][1] + values.y * data->mvp.m[1][1] + values.z * data->mvp.m[2][1] + data->mvp.m[3][1];

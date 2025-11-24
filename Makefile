@@ -6,7 +6,7 @@
 #    By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/11/13 12:35:12 by gajanvie          #+#    #+#              #
-#    Updated: 2025/11/24 15:01:32 by gajanvie         ###   ########.fr        #
+#    Updated: 2025/11/24 16:47:20 by gajanvie         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -38,7 +38,8 @@ SRCS = $(SRCD)fdf.c \
 	$(SRCD)pars_utils.c \
 	$(SRCD)rand_colors.c \
 	$(SRCD)set_data.c \
-	$(SRCD)lerp_colors.c
+	$(SRCD)lerp_colors.c \
+	$(SRCD)menue.c
 
 
 OBJS = $(SRCS:$(SRCD)%.c=$(OBJDIR)%.o)

@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 10:47:21 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/24 16:18:46 by gajanvie         ###   ########.fr       */
+/*   Updated: 2025/11/24 17:06:42 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,8 @@ void	keys_pressed3(t_window_render *data)
 		else
 			data->color_bool += 1;
 	}
+	if (data->key_table[11] == 1 && data->old_key_table[11] != 1)
+		data->help = -data->help;
 }
 
 void	keys_pressed2(t_window_render *data)
@@ -103,6 +105,7 @@ void update(void* param)
 	draw_line(data);
 	mlx_set_image_region(data->mlx, data->img, 0, 0, WIDTH, HEIGHT, data->pixels);
 	mlx_put_image_to_window(data->mlx, data->win, data->img, 0, 0);
+	create_menue(data);
 	ft_memcpy(data->old_key_table, data->key_table, sizeof(data->key_table));
 }
 

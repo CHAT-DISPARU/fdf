@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 11:13:19 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/24 16:01:40 by gajanvie         ###   ########.fr       */
+/*   Updated: 2025/11/24 17:02:34 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -148,6 +148,7 @@ typedef struct s_window_render
 	float	sphere_radius;
 	int		size_points;
 	int		speed;
+	int		help;
 } t_window_render;
 
 typedef struct s_map_pars
@@ -203,5 +204,6 @@ unsigned int	find_color(int z);
 void	clean_map_mlx(t_window_render *data);
 unsigned int    lerp_color(unsigned int c1, unsigned int c2, float t);
 void	create_window(t_window_render *data, mlx_window_create_info	*info);
+void	create_menue(t_window_render *data);
 
 #endif
