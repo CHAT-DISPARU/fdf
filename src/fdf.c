@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 10:47:21 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/24 19:04:15 by gajanvie         ###   ########.fr       */
+/*   Updated: 2025/11/25 17:45:39 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,9 +14,11 @@
 
 void	keys_pressed3(t_window_render *data)
 {
-	if (data->key_table[30] == 1 && data->old_key_table[30] != 1 && data->size_points > 0)
+	if (data->key_table[30] == 1
+		&& data->old_key_table[30] != 1 && data->size_points > 0)
 		data->size_points -= 1;
-	if (data->key_table[31] == 1 && data->old_key_table[31] != 1 && data->size_points < 12)
+	if (data->key_table[31] == 1
+		&& data->old_key_table[31] != 1 && data->size_points < 12)
 		data->size_points += 1;
 	if (data->key_table[6] == 1 && data->old_key_table[6] != 1)
 	{
@@ -35,7 +37,7 @@ void	keys_pressed2(t_window_render *data)
 		data->sphere = -data->sphere;
 	if (data->key_table[87] == 1 && data->deph < 30)
 		data->deph += 0.005 * data->speed;
-	if (data->key_table[86] == 1 && data->deph > 0.01)
+	if (data->key_table[86] == 1 && data->deph > 0.001)
 		data->deph -= 0.005 * data->speed;
 	if (data->key_table[44] == 1 && data->old_key_table[44] != 1)
 		data->color_back = -data->color_back;
@@ -81,12 +83,12 @@ void	keys_pressed(t_window_render *data)
 		data->angle_z += 0.014f * data->speed;
 }
 
-void update(void* param)
+void	update(void *param)
 {
-    t_window_render *data;
+	t_window_render	*data;
 	unsigned int	color_back;
 
-	data = (t_window_render*)param;
+	data = (t_window_render *)param;
 	keys_pressed(data);
 	keys_pressed2(data);
 	keys_pressed3(data);
@@ -100,32 +102,20 @@ void update(void* param)
 		data->mvp = render_isometric(data);
 	else
 		data->mvp = render_parallel(data);
-	mlx_clear_window(data->mlx, data->win, (mlx_color){ .rgba = color_back });
+	mlx_clear_window(data->mlx, data->win, (mlx_color){.rgba = color_back});
 	draw_every_point(data);
 	draw_line(data);
-	mlx_set_image_region(data->mlx, data->img, 0, 0, WIDTH, HEIGHT, data->pixels);
+	mlx_set_image_region(data->mlx, data->img, 0, 0,
+		WIDTH, HEIGHT, data->pixels);
 	mlx_put_image_to_window(data->mlx, data->win, data->img, 0, 0);
 	create_menue(data);
 	ft_memcpy(data->old_key_table, data->key_table, sizeof(data->key_table));
 }
 
-void	call_mlx_events(t_window_render *data)
-{
-	mlx_set_fps_goal(data->mlx, 60);
-	mlx_on_event(data->mlx, data->win, MLX_KEYDOWN, key_hook, data->mlx);
-	mlx_on_event(data->mlx, data->win, MLX_KEYDOWN, key_down, data);
-	mlx_on_event(data->mlx, data->win, MLX_KEYUP, key_up, data);
-	mlx_on_event(data->mlx, data->win, MLX_WINDOW_EVENT, window_hook, data->mlx);
-	mlx_on_event(data->mlx, data->win, MLX_MOUSEWHEEL, key_zoom, data);
-	mlx_add_loop_hook(data->mlx, update, data);
-    mlx_loop(data->mlx);
-	clean_map_mlx(data);
-}
-
 int	main(int ac, char **av)
 {
-	t_map_pars				map_pars;
-	t_window_render			data;
+	t_map_pars				*map_pars;
+	t_window_render			*data;
 	mlx_window_create_info	info;
 
 	if (ac != 2)
@@ -133,19 +123,20 @@ int	main(int ac, char **av)
 		ft_printf("./fdf <map>");
 		return (EXIT_FAILURE);
 	}
-	if (parse_map(av[1], &map_pars, &data))
+	data = malloc(sizeof(t_window_render));
+	map_pars = malloc(sizeof(t_map_pars));
+	ft_memset(data, 0, sizeof(t_window_render));
+	ft_memset(map_pars, 0, sizeof(t_map_pars));
+	ft_memset(&info, 0, sizeof(mlx_window_create_info));
+	if (parse_map(av[1], map_pars, data))
 	{
+		free_struct(data, map_pars);
 		ft_printf("Error from: %s\n", av[1]);
-		return (EXIT_FAILURE);	
+		return (EXIT_FAILURE);
 	}
-	create_window(&data, &info);
-	set_data(&data);
-	data.map_screen = malloc(sizeof(int) * data.x_max * data.y_max * 2);
-	if (!data.map_screen)
-	{
-		clean_map_mlx(&data);
-		return (0);
-	}
-	call_mlx_events(&data);
-    return (0);
+	if (set_up_win(data, info) == 1)
+		return (EXIT_FAILURE);
+	call_mlx_events(data);
+	free(map_pars);
+	return (0);
 }

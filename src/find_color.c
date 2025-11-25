@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/24 12:41:29 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/24 12:49:40 by gajanvie         ###   ########.fr       */
+/*   Updated: 2025/11/25 17:28:35 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,6 @@ unsigned int	find_color(int z)
 	if (z >= 90 && z < 115)
 		return (0x6e6e6eff);
 	if (z >= 115 && z < 135)
-		return (0xb9e1ffff);
+		return (3118596095U);
 	return (0xffffffff);
 }

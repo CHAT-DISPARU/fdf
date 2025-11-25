@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/24 12:40:34 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/24 15:46:27 by gajanvie         ###   ########.fr       */
+/*   Updated: 2025/11/25 18:03:27 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,11 +14,12 @@
 
 int	malloc_maps(t_window_render *data)
 {
-	data->map = malloc (sizeof(int) * data->y_max * data->x_max * 3);
-	data->color_map = malloc (sizeof(unsigned int) * data->y_max * data->x_max);
-	data->color_map2 = malloc (sizeof(unsigned int) * data->y_max * data->x_max);
-	data->color_map3 = malloc (sizeof(unsigned int) * data->y_max * data->x_max);
-	if (!data->map || !data->color_map || !data->color_map2 || !data->color_map3)
+	data->map = malloc(sizeof(int) * data->y_max * data->x_max * 3);
+	data->color_map = malloc(sizeof(unsigned int) * data->y_max * data->x_max);
+	data->color_map2 = malloc(sizeof(unsigned int) * data->y_max * data->x_max);
+	data->color_map3 = malloc(sizeof(unsigned int) * data->y_max * data->x_max);
+	if (!data->map || !data->color_map
+		|| !data->color_map2 || !data->color_map3)
 	{
 		cleanup_map(data);
 		return (1);
@@ -33,7 +34,7 @@ void	separate_color(t_window_render *data, char *coma, int n)
 	*coma = '\0';
 	color_str = coma + 1;
 	if (color_str[0] == '0' && (color_str[1] == 'x' || color_str[1] == 'X'))
-        color_str += 2;
+		color_str += 2;
 	if (*color_str == '\0')
 		data->color_map[n] = 0xFFFFFFFF;
 	else
@@ -48,7 +49,8 @@ void	separate_color(t_window_render *data, char *coma, int n)
 	}
 }
 
-void	fill_every_color_maps(char **line_split, t_window_render *data, t_multiple_index *index)
+void	fill_every_color_maps(char **line_split,
+	t_window_render *data, t_multiple_index *index)
 {
 	char	*coma;
 
@@ -67,16 +69,16 @@ void	fill_every_color_maps(char **line_split, t_window_render *data, t_multiple_
 	index->k++;
 }
 
-void	convert_int(t_map_pars *map_pars, t_window_render *data)
-{	
-	char	**line_split;
+int	convert_int(t_map_pars *map_pars, t_window_render *data)
+{
+	char				**line_split;
 	t_multiple_index	index;
-	
+
 	index.i = 0;
 	index.j = 0;
 	index.n = 0;
 	if (malloc_maps(data) == 1)
-		return ;
+		return (1);
 	while (map_pars->all_line[index.i])
 	{
 		index.k = 0;
@@ -85,19 +87,20 @@ void	convert_int(t_map_pars *map_pars, t_window_render *data)
 		{
 			free_all(map_pars->all_line);
 			cleanup_map(data);
-			return ;
+			return (1);
 		}
-		while (line_split[index.k])
+		while (line_split[index.k] && index.k < data->x_max)
 			fill_every_color_maps(line_split, data, &index);
 		free_all(line_split);
-		index.i++;	
+		index.i++;
 	}
+	return (0);
 }
 
 int	parse_map(char *file, t_map_pars *map_pars, t_window_render *data)
 {
-	int	fd;
-	char *line;
+	int		fd;
+	char	*line;
 
 	map_pars->all_line = NULL;
 	fd = open(file, O_RDONLY);
@@ -111,10 +114,7 @@ int	parse_map(char *file, t_map_pars *map_pars, t_window_render *data)
 		line = get_next_line(fd);
 	}
 	data->x_max = len_valid(map_pars, data);
-	if (data->x_max > 0)
-		convert_int(map_pars, data);
-	else 
+	if (check_convertion(data, map_pars) == 1)
 		return (1);
-	free_all(map_pars->all_line);
 	return (0);
 }

@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/24 12:33:45 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/24 15:31:22 by gajanvie         ###   ########.fr       */
+/*   Updated: 2025/11/25 18:04:03 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,6 @@ void	fill_str(char **tab, char *new, char ***result)
 	(*result)[j++] = ft_strdup(new);
 	(*result)[j] = NULL;
 }
-
 
 int	ft_tabstrlen(char **c)
 {
@@ -68,6 +67,8 @@ char	**ft_realloc_tab(char **tab, char *new)
 	if (!tab)
 	{
 		result = malloc(sizeof(char *) * 2);
+		if (!result)
+			return (NULL);
 		result[0] = ft_strdup(new);
 		result[1] = NULL;
 		return (result);
@@ -80,4 +81,23 @@ char	**ft_realloc_tab(char **tab, char *new)
 	if (tab)
 		free_all(tab);
 	return (result);
+}
+
+int	check_convertion(t_window_render *data, t_map_pars *map_pars)
+{
+	if (data->x_max > 0)
+	{
+		if (convert_int(map_pars, data) == 1)
+		{
+			free_all(map_pars->all_line);
+			return (1);
+		}
+	}
+	else
+	{
+		free_all(map_pars->all_line);
+		return (1);
+	}
+	free_all(map_pars->all_line);
+	return (0);
 }

@@ -6,24 +6,30 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/24 12:37:17 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/24 14:26:32 by gajanvie         ###   ########.fr       */
+/*   Updated: 2025/11/25 17:27:02 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <fdf.h>
 
+void	free_struct(t_window_render *data, t_map_pars *map_pars)
+{
+	free(map_pars);
+	free(data);
+}
+
 void	cleanup_map(t_window_render *data)
 {
 	if (data->map)
-    	free(data->map);
+		free(data->map);
 	if (data->color_map)
-    	free(data->color_map);
+		free(data->color_map);
 	if (data->color_map2)
 		free(data->color_map2);
 	if (data->color_map3)
 		free(data->color_map3);
-    data->map = NULL;
-    data->color_map = NULL;
+	data->map = NULL;
+	data->color_map = NULL;
 	data->color_map2 = NULL;
 	data->color_map3 = NULL;
 }
@@ -31,7 +37,10 @@ void	cleanup_map(t_window_render *data)
 void	clean_map_mlx(t_window_render *data)
 {
 	cleanup_map(data);
+	if (data->map_screen)
+		free(data->map_screen);
 	mlx_destroy_image(data->mlx, data->img);
 	mlx_destroy_window(data->mlx, data->win);
-    mlx_destroy_context(data->mlx);
+	mlx_destroy_context(data->mlx);
+	free(data);
 }

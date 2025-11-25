@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/05 16:10:15 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/18 14:31:59 by gajanvie         ###   ########.fr       */
+/*   Updated: 2025/11/25 18:05:35 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,7 +54,7 @@ int	check_base(char *base)
 
 unsigned int	ft_atol_base(char *str, char *base)
 {
-	int		i;
+	int			i;
 	long long	result;
 
 	i = 0;

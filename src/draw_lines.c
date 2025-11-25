@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/24 12:25:13 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/24 12:26:26 by gajanvie         ###   ########.fr       */
+/*   Updated: 2025/11/25 17:11:36 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@ void	draw_vertical(t_window_render *data)
 	int	i;
 	int	j;
 	int	idx;
-	int idx2;
+	int	idx2;
 
 	j = 0;
 	while (j < data->y_max)
@@ -25,7 +25,7 @@ void	draw_vertical(t_window_render *data)
 		i = 0;
 		while (i < data->x_max - 1)
 		{
-			idx  = (j * data->x_max + i) * 2;
+			idx = (j * data->x_max + i) * 2;
 			idx2 = (j * data->x_max + (i + 1)) * 2;
 			algo_line(data, idx, idx2);
 			i ++;
@@ -39,7 +39,7 @@ void	draw_horizontal(t_window_render *data)
 	int	i;
 	int	j;
 	int	idx;
-	int idx2;
+	int	idx2;
 
 	j = 0;
 	while (j < data->y_max - 1)
@@ -47,8 +47,8 @@ void	draw_horizontal(t_window_render *data)
 		i = 0;
 		while (i < data->x_max)
 		{
-			idx  = (j * data->x_max + i) * 2;
-            idx2 = ((j + 1) * data->x_max + i) * 2;
+			idx = (j * data->x_max + i) * 2;
+			idx2 = ((j + 1) * data->x_max + i) * 2;
 			algo_line(data, idx, idx2);
 			i ++;
 		}
@@ -66,5 +66,5 @@ void	draw_line(t_window_render *data)
 	{
 		draw_vertical(data);
 		draw_horizontal(data);
-	} 
+	}
 }

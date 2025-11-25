@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/24 12:31:51 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/24 12:32:35 by gajanvie         ###   ########.fr       */
+/*   Updated: 2025/11/25 18:04:17 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,8 +31,8 @@ void	read_in_urand(char	*r, char *g, char *b, int fd)
 unsigned int	rand_color(void)
 {
 	char	r;
-    char	g;
-    char	b;
+	char	g;
+	char	b;
 	int		fd;
 
 	fd = open ("/dev/urandom", O_RDONLY);
