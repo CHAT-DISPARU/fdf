@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/24 12:40:34 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/25 18:03:27 by gajanvie         ###   ########.fr       */
+/*   Updated: 2025/11/26 12:39:36 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,13 +106,20 @@ int	parse_map(char *file, t_map_pars *map_pars, t_window_render *data)
 	fd = open(file, O_RDONLY);
 	if (fd == -1)
 		return (1);
-	line = get_next_line(fd);
+	line = get_next_line(fd, 0);
 	while (line)
 	{
 		map_pars->all_line = ft_realloc_tab(map_pars->all_line, line);
 		free(line);
-		line = get_next_line(fd);
+		if (!map_pars->all_line)
+		{
+			get_next_line(fd, 1);
+			close(fd);
+			return (1);
+		}
+		line = get_next_line(fd, 0);
 	}
+	close(fd);
 	data->x_max = len_valid(map_pars, data);
 	if (check_convertion(data, map_pars) == 1)
 		return (1);

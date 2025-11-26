@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 11:13:19 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/25 18:34:09 by gajanvie         ###   ########.fr       */
+/*   Updated: 2025/11/26 09:50:24 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -199,7 +199,6 @@ void			mouse_hook(int button, int x, int y, t_window_render *data);
 unsigned int	rand_color(void);
 void			fill_str(char **tab, char *new, char ***result);
 int				ft_tabstrlen(char **c);
-char			**ft_tabstrdup(char **src);
 char			**ft_realloc_tab(char **tab, char *new);
 int				map_valid(char	**all_line);
 int				len_valid(t_map_pars *map_pars, t_window_render *data);

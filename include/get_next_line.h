@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/17 15:47:28 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/09 17:05:30 by gajanvie         ###   ########.fr       */
+/*   Updated: 2025/11/26 09:24:53 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,6 @@
 
 char	*ft_strchr(const char *s, int c);
 char	*ft_strjoin_gnl(char *s1, char *s2);
-char	*get_next_line(int fd);
+char	*get_next_line(int fd, int i);
 
 #endif

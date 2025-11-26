@@ -6,7 +6,7 @@
 #    By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/11/13 12:35:12 by gajanvie          #+#    #+#              #
-#    Updated: 2025/11/25 18:43:20 by gajanvie         ###   ########.fr        #
+#    Updated: 2025/11/26 09:57:10 by gajanvie         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -95,9 +95,9 @@ $(NAME_BONUS): src/libft/libft.a $(OBJS_BONUS)
 	@echo "$(GREEN)✅ Compilation of fdf with bonus finished !$(NC)"
 
 $(LIB):
+	@git clone https://github.com/seekrs/MacroLibX.git -b v2.2.2 MacroLibX --depth=1
+	@$(MAKE) --no-print-directory -C MacroLibX -j
 	@echo "$(GREEN)✅ Importation of MacroLibX finished!$(NC)"
-	@git clone $(LIB_URL) $(LIB)
-	@make --no-print-directory -C $(LIB)
 
 $(OBJDIR)%.o: $(SRCD)%.c
 	@mkdir -p objs/
@@ -110,7 +110,6 @@ $(LIBFT):
 clean:
 	@make --no-print-directory -C src/libft clean
 	@rm -rf $(OBJDIR)
-	@make --no-print-directory -C MacroLibX clean
 	@echo "$(YELLOW)🧹 file .o cleaned successfully $(NC)"
 
 fclean: clean

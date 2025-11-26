@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/17 19:58:01 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/09 14:48:06 by gajanvie         ###   ########.fr       */
+/*   Updated: 2025/11/26 09:28:27 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,13 +77,18 @@ int	read_file(char **stash, int bit_r, char *buffer, int fd)
 	return (bit_r);
 }
 
-char	*get_next_line(int fd)
+char	*get_next_line(int fd, int i)
 {
 	char		*buffer;
 	char		*newline;
 	static char	*stash[1024];
 	int			bit_r;
 
+	if (i == 1)
+	{
+		free_stash(&stash[fd]);
+		return (NULL);
+	}
 	if (fd < 0 || BUFFER_SIZE <= 0 || fd >= 1024)
 		return (NULL);
 	buffer = (char *)malloc((BUFFER_SIZE + 1) * sizeof(char));
