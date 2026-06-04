@@ -6,7 +6,7 @@
 /*   By: gajanvie <gajanvie@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/13 10:47:21 by gajanvie          #+#    #+#             */
-/*   Updated: 2025/11/25 17:45:39 by gajanvie         ###   ########.fr       */
+/*   Updated: 2025/12/01 15:05:48 by gajanvie         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,7 +120,7 @@ int	main(int ac, char **av)
 
 	if (ac != 2)
 	{
-		ft_printf("./fdf <map>");
+		ft_printf("./fdf <map>\n");
 		return (EXIT_FAILURE);
 	}
 	data = malloc(sizeof(t_window_render));
